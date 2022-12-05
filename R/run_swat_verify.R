@@ -70,6 +70,7 @@ run_swat_verification <- function(project_path, outputs = c('wb', 'mgt', 'plt'),
     }
     if ('wb' %in% outputs) {
       model_output$basin_wb_day <- read_tbl('basin_wb_day', run_path)
+      model_output$basin_pw_day <- read_tbl('basin_pw_day', run_path)
     }
     if ('mgt' %in% outputs) {
       model_output$mgt_out <- read_mgt(run_path)
