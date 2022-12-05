@@ -260,6 +260,7 @@ set_print_prt <- function(project_path, run_path, outputs, years_skip) {
 
   if ('wb' %in% outputs) {
     print_prt[11] <- "basin_wb                     y             n             n             n  "
+    print_prt[14] <- "basin_pw                     y             n             n             n  "
   }
   if ('mgt' %in% outputs) {
     print_prt[9]  <- "n             y             n             n             "
