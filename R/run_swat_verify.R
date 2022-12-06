@@ -66,14 +66,20 @@ run_swat_verification <- function(project_path, outputs = c('wb', 'mgt', 'plt'),
     model_output <- list()
 
     if ('plt' %in% outputs) {
-      model_output$hru_pw_day <- read_tbl('hru_pw_day', run_path)
+      model_output$hru_pw_day <- read_tbl('hru_pw_day.txt', run_path, 3)
     }
     if ('wb' %in% outputs) {
-      model_output$basin_wb_day <- read_tbl('basin_wb_day', run_path)
-      model_output$basin_pw_day <- read_tbl('basin_pw_day', run_path)
+      model_output$basin_wb_day <- read_tbl('basin_wb_day.txt', run_path, 3)
+      model_output$basin_pw_day <- read_tbl('basin_pw_day.txt', run_path, 3)
     }
     if ('mgt' %in% outputs) {
       model_output$mgt_out <- read_mgt(run_path)
+
+      hru_data <- read_tbl('hru-data.hru', run_path, 2)
+      landuse_lum <- read_tbl('landuse.lum', run_path, 2)
+      model_output$lum_mgt <- left_join(hru_data, landuse_lum,
+                                        by = c("lu_mgt" = 'name')) %>%
+        select(id, topo, hydro, soil, lu_mgt, mgt)
     }
   }
 
@@ -153,6 +159,7 @@ find_swat_exe <- function(project_path, os) {
 #'
 #' @param out_file Name of the output file that should be read.
 #' @param run_path Path to the folder where simulations are performed
+#' @param n_skip Integer number, how many lines to skip when reading table
 #'
 #' @importFrom data.table fread
 #' @importFrom purrr set_names
@@ -162,8 +169,8 @@ find_swat_exe <- function(project_path, os) {
 #'
 #' @keywords internal
 #'
-read_tbl <- function(out_file, run_path) {
-  file_path <- paste0(run_path, '/', out_file, '.txt')
+read_tbl <- function(file, run_path, n_skip) {
+  file_path <- paste0(run_path, '/', file)
 
   col_names <- read_lines(file = file_path, skip = 1, n_max = 1) %>%
     str_trim(.) %>%
@@ -179,7 +186,7 @@ read_tbl <- function(out_file, run_path) {
     }
   }
 
-  fread(file_path, skip = 3) %>%
+  fread(file_path, skip = n_skip, header = FALSE) %>%
     set_names(., col_names) %>%
     tibble(.)
 }
@@ -188,7 +195,7 @@ read_tbl <- function(out_file, run_path) {
 #'
 #' @param run_path Path to the folder where simulations are performed
 #'
-#' @importFrom purrr map set_names
+#' @importFrom purrr map map_df set_names
 #' @importFrom stringr str_trim str_split
 #' @importFrom tibble as_tibble
 #' @importFrom vroom vroom_lines
@@ -198,7 +205,7 @@ read_tbl <- function(out_file, run_path) {
 read_mgt <- function(run_path) {
   file_path <- paste0(run_path, '/mgt_out.txt')
 
-  vroom_lines(file_path, skip = 3) %>%
+  mgt <- vroom_lines(file_path, skip = 3) %>%
     str_trim(.) %>%
     str_split(., '\t[:space:]+|[:space:]+') %>%
     map(., ~ .x[1:21]) %>%
@@ -210,6 +217,10 @@ read_mgt <- function(run_path) {
                    'phubase', 'phuplant', 'soil_water', 'plant_bioms',
                    'surf_rsd', 'soil_no3', 'soil_solp', 'op_var',
                    paste0('var', 1:7)))
+
+  mgt[,c(1:4, 7:21)] <- map_df(mgt[,c(1:4, 7:21)], as.numeric)
+
+  return(mgt)
 }
 
 
