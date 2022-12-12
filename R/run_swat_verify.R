@@ -80,6 +80,7 @@ run_swat_verification <- function(project_path, outputs = c('wb', 'mgt', 'plt'),
     }
     if ('mgt' %in% outputs) {
       model_output$mgt_out <- read_mgt(run_path)
+      model_output$mgt_sch <- read_sch(run_path)
 
       hru_data <- read_tbl('hru-data.hru', run_path, 2)
       landuse_lum <- read_tbl('landuse.lum', run_path, 2)
@@ -203,9 +204,9 @@ read_tbl <- function(file, run_path, n_skip) {
 #'
 #' @importFrom dplyr %>%
 #' @importFrom purrr map map_df set_names
+#' @importFrom readr read_lines
 #' @importFrom stringr str_trim str_split
 #' @importFrom tibble as_tibble
-#' @importFrom vroom vroom_lines
 #'
 #' @keywords internal
 #'
@@ -229,6 +230,53 @@ read_mgt <- function(run_path) {
   mgt[,c(1:4, 7:21)] <- map_df(mgt[,c(1:4, 7:21)], as.numeric)
 
   return(mgt)
+}
+
+#' Read SWAT+ management schedule file and return the read file in a tibble
+#'
+#' @param run_path Path to the folder where simulations are performed
+#'
+#' @importFrom dplyr mutate %>%
+#' @importFrom purrr map map_int map_chr map2 map2_df map_df set_names
+#' @importFrom readr read_lines
+#' @importFrom stringr str_replace_all str_trim str_split
+#' @importFrom tibble as_tibble
+#'
+#' @keywords internal
+#'
+read_sch <- function(run_path) {
+  schdl_path <- paste0(run_path, '/management.sch')
+
+  schdl <- read_lines(schdl_path, skip = 2, lazy = FALSE) %>%
+    str_trim(.) %>%
+    str_replace_all(., '\t', ' ') %>%
+    str_split(., '[:space:]+')
+
+  n_elem <- map_int(schdl, length)
+  schdl <- schdl[n_elem != 1]
+  n_elem <- map_int(schdl, length)
+  schdl_def_pos <- which(n_elem == 3)
+
+  schdl_name <- map_chr(schdl_def_pos, ~ schdl[[.x]][1])
+
+  schdl_start <- schdl_def_pos + 1
+  schdl_end <- c(schdl_def_pos[2:length(schdl_def_pos)] - 1, length(schdl))
+  no_entry <- schdl_start > schdl_end
+  schdl_start[no_entry] <- length(schdl) + 1
+  schdl_end[no_entry] <- length(schdl) + 1
+  schdl_start[no_entry] <- 1e9
+  schdl_end[no_entry] <- 1e9
+
+  schdl_mgt <- map2(schdl_start, schdl_end, ~ schdl[.x:.y]) %>%
+    map(., unlist) %>%
+    map(., as_mtx_null) %>%
+    map(., ~ as_tibble(.x, .name_repair = 'minimal')) %>%
+    map(., ~ set_names(.x, c('op_typ', 'mon', 'day', 'hu_sch', paste0('op_data', 1:3)))) %>%
+    map2_df(., schdl_name, ~ mutate(.x, schedule = .y, .before = 1))
+
+  schdl_mgt[,c(3:5, 8)] <- map_df(schdl_mgt[,c(3:5, 8)], as.numeric)
+
+  return(schdl_mgt)
 }
 
 #' Generate folder structure for SWAT execution

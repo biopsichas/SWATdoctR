@@ -16,6 +16,7 @@
 #' @importFrom dplyr filter group_by mutate n rename select ungroup %>%
 #' @importFrom ggplot2 aes ggplot geom_boxplot geom_hline labs theme_bw
 #' @importFrom purrr set_names
+#'
 #' @export
 #'
 plot_variable_at_harvkill <- function(sim_verify, variable, years = 1900:2100) {
