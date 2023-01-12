@@ -17,6 +17,7 @@
 #'
 #' @export
 #'
+
 print_triggered_mgt <- function(sim_verify, hru_id, years = 1900:2100) {
   cat('Triggered managament for\n', ' hru:       ', hru_id, '\n',
       ' management:', sim_verify$lum_mgt$mgt[sim_verify$lum_mgt$id == hru_id], '\n\n')
