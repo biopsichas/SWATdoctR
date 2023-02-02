@@ -51,6 +51,9 @@ download_sft_files <- function(path) {
 
 # changes the file.cio to enable soft calibration
 enable_sft <- function(path) {
+
+  # file.cio modificatons
+
   # read the file.cio in
   file.cio = readLines(con = paste0(path, "file.cio"))
   # grab the 22nd line
@@ -71,7 +74,30 @@ enable_sft <- function(path) {
   file.cio[22] = new_line22
 
   # write the modified file.cio
-  writeLines(text = file.cio, con = paste(path, "file.cio"))
+  writeLines(text = file.cio, con = paste0(path, "file.cio"))
+
+  # codes.sft modifications:
+
+  # read in the codes.sft file (warnings turned off because of "incomplete final line)
+  codes.sft = readLines(con = paste0(path, "codes.sft"), warn = F)
+  # split that line based of white space
+
+  # find out what the column index is of HYD_HRU
+  line2 = codes.sft[2] %>% strsplit("\\s+") %>% unlist()
+  hyd_hru_col_index = which(line2=="HYD_HRU")
+
+  line3 = codes.sft[3] %>% strsplit("\\s+") %>% unlist()
+  # Edit ‘codes.sft’ file by changing the “n” to “y” in the first column.
+  line3[hyd_hru_col_index] = "y"
+
+  # merge line 3 back together
+  line3 = paste(line3, collapse = "   ")
+
+  # and apply it to the file
+  codes.sft[3] = line3
+
+  # write the modified codes.sft file
+  writeLines(text = codes.sft, con = paste0(path, "codes.sft"))
 
   print("soft cal enabled")
 }
@@ -98,7 +124,30 @@ disable_sft <- function(path) {
   file.cio[22] = new_line22
 
   # write the modified file.cio
-  writeLines(text = file.cio, con = paste(path, "file.cio"))
+  writeLines(text = file.cio, con = paste0(path, "file.cio"))
+
+
+  # codes.sft modifications:
+
+  # read in the codes.sft file (warnings turned off because of "incomplete final line)
+  codes.sft = readLines(con = paste0(path, "codes.sft"), warn = F)
+
+  # find out what the column index is of HYD_HRU
+  line2 = codes.sft[2] %>% strsplit("\\s+") %>% unlist()
+  hyd_hru_col_index = which(line2=="HYD_HRU")
+
+  line3 = codes.sft[3] %>% strsplit("\\s+") %>% unlist()
+  # Edit ‘codes.sft’ file by changing the “n” to “y” in the first column.
+  line3[hyd_hru_col_index] = "n"
+
+  # merge line 3 back together
+  line3 = paste(line3, collapse = "   ")
+
+  # and apply it to the file
+  codes.sft[3] = line3
+
+  # write the modified codes.sft file
+  writeLines(text = codes.sft, con = paste0(path, "codes.sft"))
 
   print("soft cal disabled")
 }
