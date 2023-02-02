@@ -1,6 +1,6 @@
 
 
-# to be done with the @ stuff
+# I'll make it package compatible later, once its working.
 library(data.table) # fread
 library(dplyr) # filter, %>%, slice, ranking/row_number, tibble
 library(tidyr) # unite
@@ -12,7 +12,6 @@ library(tidyr) # unite
 
 # this will need to be determined / passed
 path = "C:/Users/NIBIO/Documents/GitLab/optain-swat/SWAT_softcal/swatplus_rev60_demo/"
-
 
 # downloads the required .sft files from some source
 # printing just for diagnostics, maybe remove.
@@ -49,9 +48,9 @@ download_sft_files <- function(path) {
   }
 }
 
-
+# toggles the soft calibration routine either ON or OFF
 toggle_sft <- function(path, switch){
-  # file.cio modificatons
+  # file.cio modifications
 
   # read the file.cio in
   file.cio = readLines(con = paste0(path, "file.cio"))
@@ -124,7 +123,6 @@ toggle_sft <- function(path, switch){
   }
 }
 
-
 # The following is only required due to the poor formatting of the SWAT output
 read_wb_aa <- function(path){
   # read the wb_aa file from its PATH
@@ -163,11 +161,53 @@ read_wb_aa <- function(path){
   return(basin_wb_aa %>% tibble())
 }
 
+# Modify ‘water_balance.sft’ with your values for fractions. Only the values under the WYR and
+# BFR columns need to be modified (see Soft data). Make sure to count the columns, as the file
+# is a free-format. Save the edits.
+modify_wb_parms <- function(path) {
+
+  # ask user for parameter values (could be changed to whatever method)
+  WYLD_PCP_Ratio = readline(prompt = "Enter your value for WYLD_PCP_Ratio: ") %>% as.numeric()
+  Subsurface_WYLD_Ratio = readline(prompt = "Enter your value for Subsurface_WYLD_Ratio: ") %>% as.numeric()
+
+
+  # read the water balance file
+  water_balance_sft = readLines(paste0(path, "water_balance.sft"))
+
+  # extract the line with the column names
+  line5 = water_balance_sft[5] %>% strsplit("\\s+") %>% unlist()
+
+  # locate the desired parameters
+  WYLD_PCP_Ratio_INDEX = which(line5 == "WYLD_PCP_Ratio")
+  Subsurface_WYLD_Ratio_INDEX = which(line5 == "Subsurface_WYLD_Ratio")
+
+  # extract the line with the parameter values
+  line6 = water_balance_sft[6] %>% strsplit("\\s+") %>% unlist()
+
+  # change the values with the user given values
+  line6[WYLD_PCP_Ratio_INDEX] = WYLD_PCP_Ratio
+  line6[Subsurface_WYLD_Ratio_INDEX] = Subsurface_WYLD_Ratio
+
+  # merge them back together
+  line6 = paste(line6, collapse = "   ")
+
+  # add the modified parameter line back to the text file
+  water_balance_sft[6] = line6
+
+  # and write it
+  writeLines(text = water_balance_sft, con = paste0(path, "water_balance.sft"))
+
+  paste("water balance parameters updated with values:",WYLD_PCP_Ratio, Subsurface_WYLD_Ratio ) %>% print()
+
+}
+
 
 # enables the soft calibration routine
 toggle_sft(path, switch = "on")
 # downloads any missing sft file
 download_sft_files(path)
+# modify the wb parms
+modify_wb_parms(path)
 # reads the results of the wb soft calibration
 df = read_wb_aa(path)
 # disables the soft-calibration routine
