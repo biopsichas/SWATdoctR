@@ -49,9 +49,8 @@ download_sft_files <- function(path) {
   }
 }
 
-# changes the file.cio to enable soft calibration
-enable_sft <- function(path) {
 
+toggle_sft <- function(path, switch){
   # file.cio modificatons
 
   # read the file.cio in
@@ -62,10 +61,20 @@ enable_sft <- function(path) {
   # split that line based of white space
   line22 = file_cio_line_22 %>% strsplit("\\s+") %>% unlist()
 
-  # replace the the column values 4,5,6 with the sft file names
-  line22[4] = "codes.sft"
-  line22[5] = "wb_parms.sf"
-  line22[6] = "water_balanbce.sft"
+  if(switch == "on"){
+    # replace the the column values 4,5,6 with the sft file names
+    line22[4] = "codes.sft"
+    line22[5] = "wb_parms.sf"
+    line22[6] = "water_balanbce.sft"
+  }
+
+  if(switch == "off"){
+    # replace the the column values 4,5,6 with the sft file names
+    line22[4] = "null"
+    line22[5] = "null"
+    line22[6] = "null"
+  }
+
 
   # merge them back together
   new_line22 = paste(line22, collapse = "   ")
@@ -87,8 +96,16 @@ enable_sft <- function(path) {
   hyd_hru_col_index = which(line2=="HYD_HRU")
 
   line3 = codes.sft[3] %>% strsplit("\\s+") %>% unlist()
-  # Edit ‘codes.sft’ file by changing the “n” to “y” in the first column.
-  line3[hyd_hru_col_index] = "y"
+
+  if (switch == "on") {
+    # Edit ‘codes.sft’ file by changing the “n” to “y” in the first column.
+    line3[hyd_hru_col_index] = "y"
+  }
+
+  if (switch == "off") {
+    # Edit ‘codes.sft’ file by changing the “y” to “n” in the first column.
+    line3[hyd_hru_col_index] = "n"
+  }
 
   # merge line 3 back together
   line3 = paste(line3, collapse = "   ")
@@ -99,58 +116,14 @@ enable_sft <- function(path) {
   # write the modified codes.sft file
   writeLines(text = codes.sft, con = paste0(path, "codes.sft"))
 
-  print("soft cal enabled")
+  if (switch == "on") {
+    print("soft cal enabled")
+  }
+  if (switch == "off") {
+    print("soft cal disabled")
+  }
 }
 
-# changes the file.cio to disable soft calibration
-disable_sft <- function(path) {
-  # read the file.cio in
-  file.cio = readLines(con = paste0(path, "file.cio"))
-  # grab the 22nd line
-  file_cio_line_22 = file.cio[22]
-
-  # split that line based of white space
-  line22 = file_cio_line_22 %>% strsplit("\\s+") %>% unlist()
-
-  # replace the the column values 4,5,6 with null to disable soft-cal
-  line22[4] = "null"
-  line22[5] = "null"
-  line22[6] = "null"
-
-  # merge them back together
-  new_line22 = paste(line22, collapse = "   ")
-
-  # replace the old line with the new line
-  file.cio[22] = new_line22
-
-  # write the modified file.cio
-  writeLines(text = file.cio, con = paste0(path, "file.cio"))
-
-
-  # codes.sft modifications:
-
-  # read in the codes.sft file (warnings turned off because of "incomplete final line)
-  codes.sft = readLines(con = paste0(path, "codes.sft"), warn = F)
-
-  # find out what the column index is of HYD_HRU
-  line2 = codes.sft[2] %>% strsplit("\\s+") %>% unlist()
-  hyd_hru_col_index = which(line2=="HYD_HRU")
-
-  line3 = codes.sft[3] %>% strsplit("\\s+") %>% unlist()
-  # Edit ‘codes.sft’ file by changing the “n” to “y” in the first column.
-  line3[hyd_hru_col_index] = "n"
-
-  # merge line 3 back together
-  line3 = paste(line3, collapse = "   ")
-
-  # and apply it to the file
-  codes.sft[3] = line3
-
-  # write the modified codes.sft file
-  writeLines(text = codes.sft, con = paste0(path, "codes.sft"))
-
-  print("soft cal disabled")
-}
 
 # The following is only required due to the poor formatting of the SWAT output
 read_wb_aa <- function(path){
@@ -192,13 +165,13 @@ read_wb_aa <- function(path){
 
 
 # enables the soft calibration routine
-enable_sft(path)
+toggle_sft(path, switch = "on")
 # downloads any missing sft file
 download_sft_files(path)
 # reads the results of the wb soft calibration
 df = read_wb_aa(path)
 # disables the soft-calibration routine
-disable_sft(path)
+toggle_sft(path, switch = "off")
 
 
 
