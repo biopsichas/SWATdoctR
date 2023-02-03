@@ -1,19 +1,68 @@
+#' Runs the SWAT+ soft-calibration routine.
+#'
+#' more info here
+#'
+#' @param project_path Character string, path to the SWAT+ project folder
+#'   (i.e. TxtInOut).
+#' @param os string of operating system
+#'   to only activate nutrient plant stress.
+#' @param keep_folder (optional) If \code{keep_folder = TRUE}
+#'   '.model_run/verification' is kept and not deleted after finishing model runs.
+#'   In this case '.model_run' is reused in a new model run if \code{refresh = FALSE}.
+#'   \code{Default = FALSE}
+#'
+#' @return Returns the simulation results for the soft calibration routine as a
+#'   tibble.
+#' @importFrom processx run
+#' @export
+#'
+soft_calibrate <- function(project_path, os, keep_folder = FALSE) {
+print("creating temp model directory")
+# create a temporary directory copy of the model setup
+temp_directory = build_model_run(project_path)
 
-# I'll make it package compatible later, once its working.
-library(data.table) # fread
-library(dplyr) # filter, %>%, slice, ranking/row_number, tibble
-library(tidyr) # unite
-library(processx) # run
 
-# note: for now this is only water balance.
-# once i finish water balance, ill add the crop routine.
+print("downloading sft files")
+# downloads any missing sft file
+download_sft_files(temp_directory)
 
+print("enabaling soft-cal routine")
+# enables the soft calibration routine
+toggle_sft(temp_directory, switch = "on")
 
-# this will need to be determined / passed
-path = "C:/Users/NIBIO/Documents/GitLab/optain-swat/SWAT_softcal/swatplus_rev60_demo/"
+print("changing the WB parms")
+# modify the wb parms
+modify_wb_parms(temp_directory)
 
-# downloads the required .sft files from some source
-# printing just for diagnostics, maybe remove.
+print("finding swat.exe")
+# copied from swat verify (do i need to import this?)
+exepath = find_swat_exe(project_path = path, os = os)
+
+print("running SWAT+ with soft-calibration routine")
+# copied from swat verify (do i need to import this?)
+msg <- run(run_os(exe = exepath , os = os),
+           wd = temp_directory,
+           error_on_status = FALSE)
+
+print("disabling the SFT routine")
+# disables the soft-calibration routine
+toggle_sft(temp_directory, switch = "off")
+
+print("reading results")
+# reads the results of the wb soft calibration
+df = read_wb_aa(temp_directory)
+
+print("returning results..")
+return(df)
+}
+
+#' downloads the required .sft files from some source
+#' printing just for diagnostics, maybe remove.
+#'
+#' @param path text string to (temporary) directory
+#' @keywords internal
+#' @importFrom dplyr %>%
+#'
 download_sft_files <- function(path) {
   # TEMP until the water_balance.sft file is hosted
   if ("water_balance.sft" %in% list.files(path) == FALSE) {
@@ -55,7 +104,14 @@ download_sft_files <- function(path) {
   }
 }
 
-# toggles the soft calibration routine either ON or OFF
+
+#' toggles the soft calibration routine either ON or OFF
+#'
+#' @param path text string to (temporary) directory
+#' @param switch string, either "off" or "on"
+#' @keywords internal
+#' @importFrom dplyr %>%
+#'
 toggle_sft <- function(path, switch) {
   # file.cio modifications
 
@@ -68,7 +124,7 @@ toggle_sft <- function(path, switch) {
   file_cio_line_22 = file.cio[22]
 
   # split that line based of white space
-  line22 = file_cio_line_22 %>% strsplit("\\s+") %>% unlist()
+  line22 = file_cio_line_22 %>% base::strsplit("\\s+") %>% unlist()
 
   if (switch == "on") {
     # replace the the column values 4,5,6 with the sft file names
@@ -101,10 +157,10 @@ toggle_sft <- function(path, switch) {
   # split that line based of white space
 
   # find out what the column index is of HYD_HRU
-  line2 = codes.sft[2] %>% strsplit("\\s+") %>% unlist()
+  line2 = codes.sft[2] %>% base::strsplit("\\s+") %>% unlist()
   hyd_hru_col_index = which(line2 == "HYD_HRU")
 
-  line3 = codes.sft[3] %>% strsplit("\\s+") %>% unlist()
+  line3 = codes.sft[3] %>% base::strsplit("\\s+") %>% unlist()
 
   if (switch == "on") {
     # Edit ‘codes.sft’ file by changing the “n” to “y” in the first column.
@@ -133,7 +189,16 @@ toggle_sft <- function(path, switch) {
   }
 }
 
-# The following is only required due to the poor formatting of the SWAT output
+#' reads and reformats the SWAT+ soft calibration routine output
+#'
+#' @param path text string to (temporary) directory
+#' @keywords internal
+#' @importFrom data.table fread
+#' @importFrom tidyr unite
+#' @importFrom dplyr %>% slice filter ranking mutate_all tibble
+#'
+#' @return returns a tibble of the formatted output of the soft-cal routine
+#'
 read_wb_aa <- function(path) {
   # add a backslash onto the path, so its compatible with build_model_run()
   path = paste0(path, "/")
@@ -177,10 +242,13 @@ read_wb_aa <- function(path) {
   return(basin_wb_aa %>% tibble())
 }
 
-
-# Modify ‘water_balance.sft’ with your values for fractions. Only the values under the WYR and
-# BFR columns need to be modified (see Soft data). Make sure to count the columns, as the file
-# is a free-format. Save the edits.
+#' Modify ‘water_balance.sft’ with values for fractions. Only the values WYR and
+#' BFR columns need to be modified
+#'
+#' @param path text string to (temporary) directory
+#' @keywords internal
+#' @importFrom dplyr %>%
+#'
 modify_wb_parms <- function(path) {
   # add a backslash onto the path, so its compatible with build_model_run()
   path = paste0(path, "/")
@@ -194,14 +262,14 @@ modify_wb_parms <- function(path) {
   water_balance_sft = readLines(paste0(path, "water_balance.sft"))
 
   # extract the line with the column names
-  line5 = water_balance_sft[5] %>% strsplit("\\s+") %>% unlist()
+  line5 = water_balance_sft[5] %>% base::strsplit("\\s+") %>% unlist()
 
   # locate the desired parameters
   WYLD_PCP_Ratio_INDEX = which(line5 == "WYLD_PCP_Ratio")
   Subsurface_WYLD_Ratio_INDEX = which(line5 == "Subsurface_WYLD_Ratio")
 
   # extract the line with the parameter values
-  line6 = water_balance_sft[6] %>% strsplit("\\s+") %>% unlist()
+  line6 = water_balance_sft[6] %>% base::strsplit("\\s+") %>% unlist()
 
   # change the values with the user given values
   line6[WYLD_PCP_Ratio_INDEX] = WYLD_PCP_Ratio
@@ -224,49 +292,10 @@ modify_wb_parms <- function(path) {
 
 }
 
-# runs SWAT+ (add all the sub functions in here)
-soft_calibrate <- function(path, os) {
-  print("creating temp model directory")
-  # create a temporary directory copy of the model setup
-  temp_directory = build_model_run(path)
 
 
-  print("downloading sft files")
-  # downloads any missing sft file
-  download_sft_files(temp_directory)
-
-  print("enabaling soft-cal routine")
-  # enables the soft calibration routine
-  toggle_sft(temp_directory, switch = "on")
-
-  print("changing the WB parms")
-  # modify the wb parms
-  modify_wb_parms(temp_directory)
-
-  print("finding swat.exe")
-  # copied from swat verify (do i need to import this?)
-  exepath = find_swat_exe(project_path = path, os = os)
-
-  print("running SWAT+ with soft-calibration routine")
-  # copied from swat verify (do i need to import this?)
-  msg <- run(run_os(exe = exepath , os = os),
-             wd = temp_directory,
-             error_on_status = FALSE)
-
-  print("disabling the SFT routine")
-  # disables the soft-calibration routine
-  toggle_sft(temp_directory, switch = "off")
-
-  print("reading results")
-  # reads the results of the wb soft calibration
-  df = read_wb_aa(temp_directory)
-
-  print("returning results..")
-  return(df)
-}
-
-
-# hey christoph.. so this is the full function.
+# notes  -----
+#
 # I hope my documentation makes it fairly clear what it is doing.
 #
 # Some things need to still be done:
@@ -296,14 +325,19 @@ soft_calibrate <- function(path, os) {
 
 # Path: path to SWAT+ directory
 # OS: operating system. only tested on "windows"
-basin_wb_aa <- soft_calibrate(path, "windows")
 
-basin_wb_aa %>% ggplot() + geom_col(mapping = aes(x = description, y = wateryld))
+# code to be executed: -----
+# path = "C:/Users/NIBIO/Documents/GitLab/optain-swat/SWAT_softcal/swatplus_rev60_demo/"
+#
+# basin_wb_aa <- soft_calibrate(path, "windows")
+#
+# basin_wb_aa %>% ggplot() + geom_col(mapping = aes(x = description, y = wateryld))
+#
 
-
-# Next steps:
+# Next steps: ------
 # Implement the crop yield soft cal routine
 # Link WB and crop yield routines (iteratively)
 # Allow the user to keep or discard any changes made
 #   if(!keep_folder) unlink(run_path, recursive = TRUE, force = TRUE)
 # ....
+
