@@ -1,11 +1,9 @@
 #' Runs the SWAT+ soft-calibration routine.
 #'
-#' more info here
+#' write more info here?
 #'
 #' @param project_path Character string, path to the SWAT+ project folder
-#'   (i.e. TxtInOut).
 #' @param os string of operating system
-#'   to only activate nutrient plant stress.
 #' @param keep_folder (optional) If \code{keep_folder = TRUE}
 #'   '.model_run/verification' is kept and not deleted after finishing model runs.
 #'   In this case '.model_run' is reused in a new model run if \code{refresh = FALSE}.
@@ -20,7 +18,6 @@ soft_calibrate <- function(project_path, os, keep_folder = FALSE) {
   print("creating temp model directory")
   # create a temporary directory copy of the model setup
   temp_directory = build_model_run(project_path)
-
 
   print("downloading sft files")
   # downloads any missing sft file
@@ -46,6 +43,9 @@ soft_calibrate <- function(project_path, os, keep_folder = FALSE) {
 
   print("disabling the SFT routine")
   # disables the soft-calibration routine
+  # I originally wrote this since i was working in the original swat directory
+  # it technically isnt needed when working with a copy, but it might be useful
+  # so i'll leave it in here for now...
   toggle_sft(temp_directory, switch = "off")
 
   print("reading results")
@@ -64,6 +64,7 @@ soft_calibrate <- function(project_path, os, keep_folder = FALSE) {
 #' @importFrom dplyr %>%
 #'
 download_sft_files <- function(path) {
+  # "water_balance.sft" currently does not exist on bitbucket but needs to be downloaded!!
   # TEMP until the water_balance.sft file is hosted
   if ("water_balance.sft" %in% list.files(path) == FALSE) {
     stop("water_balance.sft needs to present in your directory TEMP: for now...")
@@ -72,27 +73,27 @@ download_sft_files <- function(path) {
   # add a backslash onto the path, so its compatible with build_model_run()
   path = paste0(path, "/")
 
-
-  # this could be passed as a parameter
+  # the desired files might be better passed as a parameter instead of hard coded here
   required_files = c("codes.sft", "wb_parms.sft")
 
-  # "water_balance.sft" currently does not exist on bitbucket but needs to be downloaded!!
-
+  # The download repository for the sft files:
   # I hope this remains constant for all the files???
   # or can we host this on our own gitlab?
-  # this could be passed as a parameter
+  # this could also be passed as a parameter
   source__online_directory = "https://bitbucket.org/blacklandgrasslandmodels/modular_swatplus/raw/3d2126fb115077b51be90526238c83cd79e3ef4c/database_files/"
 
-  # find out which sft files are missing and download them.
+  # find out which .sft files are missing and download them.
   for (file in required_files) {
     if (file %in% list.files(path) == FALSE) {
       paste(file, "not in your SWAT+ directory. downloading now...") %>% print()
 
+      # not sure how we want to handle error-prone code?
       try(download.file(
         url = paste0(source__online_directory, file),
         destfile = paste0(path, file)
       ))
 
+      # check to see if the file was downloaded
       if (file %in% list.files(path)) {
         paste(file, "downloaded successfully") %>% print()
       } else{
@@ -104,42 +105,37 @@ download_sft_files <- function(path) {
   }
 }
 
-
 #' toggles the soft calibration routine either ON or OFF
 #'
-#' @param path text string to (temporary) directory
+#' @param path string to (temporary) directory
 #' @param switch string, either "off" or "on"
 #' @keywords internal
 #' @importFrom dplyr %>%
 #'
 toggle_sft <- function(path, switch) {
-  # file.cio modifications
-
   # add a backslash onto the path, so its compatible with build_model_run()
   path = paste0(path, "/")
 
+  # file.cio modification:
   # read the file.cio in
   file.cio = readLines(con = paste0(path, "file.cio"))
-  # grab the 22nd line
-  file_cio_line_22 = file.cio[22]
 
-  # split that line based of white space
-  line22 = file_cio_line_22 %>% base::strsplit("\\s+") %>% unlist()
+  # grab the 22nd line and split that line based of white space
+  line22 = file.cio[22] %>% base::strsplit("\\s+") %>% unlist()
 
   if (switch == "on") {
-    # replace the the column values 4,5,6 with the sft file names
+    # replace the the column values 4,5,6 with the .sft file names
     line22[4] = "codes.sft"
     line22[5] = "wb_parms.sf"
     line22[6] = "water_balance.sft"
   }
 
   if (switch == "off") {
-    # replace the the column values 4,5,6 with the sft file names
+    # replace the the column values 4,5,6 with NULL to disable
     line22[4] = "null"
     line22[5] = "null"
     line22[6] = "null"
   }
-
 
   # merge them back together
   new_line22 = paste(line22, collapse = "   ")
@@ -151,15 +147,16 @@ toggle_sft <- function(path, switch) {
   writeLines(text = file.cio, con = paste0(path, "file.cio"))
 
   # codes.sft modifications:
-
-  # read in the codes.sft file (warnings turned off because of "incomplete final line)
+  # read in the codes.sft file (warnings turned off because of "incomplete final line")
   codes.sft = readLines(con = paste0(path, "codes.sft"), warn = F)
-  # split that line based of white space
+
+  # split that line based on white space
+  line2 = codes.sft[2] %>% base::strsplit("\\s+") %>% unlist()
 
   # find out what the column index is of HYD_HRU
-  line2 = codes.sft[2] %>% base::strsplit("\\s+") %>% unlist()
   hyd_hru_col_index = which(line2 == "HYD_HRU")
 
+  # split line 3 based on white space
   line3 = codes.sft[3] %>% base::strsplit("\\s+") %>% unlist()
 
   if (switch == "on") {
@@ -172,11 +169,9 @@ toggle_sft <- function(path, switch) {
     line3[hyd_hru_col_index] = "n"
   }
 
-  # merge line 3 back together
-  line3 = paste(line3, collapse = "   ")
 
-  # and apply it to the file
-  codes.sft[3] = line3
+  # merge line 3 back together and apply it to the file
+  codes.sft[3] = paste(line3, collapse = "   ")
 
   # write the modified codes.sft file
   writeLines(text = codes.sft, con = paste0(path, "codes.sft"))
@@ -189,9 +184,9 @@ toggle_sft <- function(path, switch) {
   }
 }
 
-#' reads and reformats the SWAT+ soft calibration routine output
+#' reads and re-formats the SWAT+ soft calibration output
 #'
-#' @param path text string to (temporary) directory
+#' @param path string to (temporary) directory
 #' @keywords internal
 #' @importFrom data.table fread
 #' @importFrom tidyr unite
@@ -203,9 +198,10 @@ read_wb_aa <- function(path) {
   # add a backslash onto the path, so its compatible with build_model_run()
   path = paste0(path, "/")
 
-
-  # read the wb_aa file from its PATH
-  basin_wb_aa = fread(paste0(path, "basin_wb_aa.txt"), fill = TRUE, )
+  # read the wb_aa file from its path
+  # fill = TRUE then in case the rows have unequal length, blank fields are
+  # implicitly filled. (which is the case for this file)
+  basin_wb_aa = fread(paste0(path, "basin_wb_aa.txt"), fill = TRUE)
 
   # change the column names to those of the second row in the text file.
   colnames(basin_wb_aa) <-
@@ -226,7 +222,7 @@ read_wb_aa <- function(path) {
   # Unite the last three rows into one string (as they were intended to be)
   # the new column will be named description and describes what the softcal
   # algorithm did in that step. (So its probably important).
-  # the united columns are separated by a space (trailing space exists now)
+  # the united columns are separated by a space (trailing space exists now..)
   basin_wb_aa = tidyr::unite(data = basin_wb_aa,
                              col = description,
                              no_name_columns,
@@ -239,13 +235,14 @@ read_wb_aa <- function(path) {
   # and convert them to numeric
   basin_wb_aa = basin_wb_aa %>% mutate_at(dbl_cols, as.numeric)
 
+  # return the formatted table as a tibble
   return(basin_wb_aa %>% tibble())
 }
 
 #' Modify ‘water_balance.sft’ with values for fractions. Only the values WYR and
 #' BFR columns need to be modified
 #'
-#' @param path text string to (temporary) directory
+#' @param path string to (temporary) directory
 #' @keywords internal
 #' @importFrom dplyr %>%
 #'
@@ -257,33 +254,30 @@ modify_wb_parms <- function(path) {
   WYLD_PCP_Ratio = readline(prompt = "Enter your value for WYLD_PCP_Ratio: ") %>% as.numeric()
   Subsurface_WYLD_Ratio = readline(prompt = "Enter your value for Subsurface_WYLD_Ratio: ") %>% as.numeric()
 
-
   # read the water balance file
   water_balance_sft = readLines(paste0(path, "water_balance.sft"))
 
-  # extract the line with the column names
+  # extract the line with the column names and split based off whitespace
   line5 = water_balance_sft[5] %>% base::strsplit("\\s+") %>% unlist()
 
   # locate the desired parameters
   WYLD_PCP_Ratio_INDEX = which(line5 == "WYLD_PCP_Ratio")
   Subsurface_WYLD_Ratio_INDEX = which(line5 == "Subsurface_WYLD_Ratio")
 
-  # extract the line with the parameter values
+  # extract the line with the parameter values based off whitespace
   line6 = water_balance_sft[6] %>% base::strsplit("\\s+") %>% unlist()
 
   # change the values with the user given values
   line6[WYLD_PCP_Ratio_INDEX] = WYLD_PCP_Ratio
   line6[Subsurface_WYLD_Ratio_INDEX] = Subsurface_WYLD_Ratio
 
-  # merge them back together
-  line6 = paste(line6, collapse = "   ")
-
-  # add the modified parameter line back to the text file
-  water_balance_sft[6] = line6
+  # merge them back together and add the modified parameter line back to the text file
+  water_balance_sft[6] = paste(line6, collapse = "   ")
 
   # and write it
   writeLines(text = water_balance_sft, con = paste0(path, "water_balance.sft"))
 
+  # diagnostic printout
   paste(
     "water balance parameters updated with values:",
     WYLD_PCP_Ratio,
@@ -319,6 +313,9 @@ modify_wb_parms <- function(path) {
 #
 # - Rename the function to something like "run_swat_soft_calibration()?
 #   - and rename the script file to match?
+#
+# - Allow the user to keep or discard any changes made
+#   if(!keep_folder) unlink(run_path, recursive = TRUE, force = TRUE)
 
 # code to be executed: -----
 
@@ -328,10 +325,7 @@ modify_wb_parms <- function(path) {
 
 # basin_wb_aa %>% ggplot() + geom_col(mapping = aes(x = description, y = wateryld))
 
-
 # Next steps: ------
 # Implement the crop yield soft cal routine
 # Link WB and crop yield routines (iteratively)
-# Allow the user to keep or discard any changes made
-#   if(!keep_folder) unlink(run_path, recursive = TRUE, force = TRUE)
 # ....
