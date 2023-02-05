@@ -14,7 +14,6 @@
 
 add_kill_op <- function(project_path){
   mgt_sch <- read_lines(paste0(project_path,'/management.sch'), lazy = FALSE)
-  write_lines(mgt_sch, paste0(project_path,'/management_bak.sch'))
   l <- 0
   while(length(grep("hvkl", mgt_sch)) != 0){
     i <- grep("hvkl", mgt_sch)[1]
@@ -26,8 +25,9 @@ add_kill_op <- function(project_path){
     l <- l+1
   }
   if(l > 0){
+    file.copy(paste0(project_path,'/management.sch'), paste0(project_path,'/management_bak.sch'))
     write_lines(mgt_sch, paste0(project_path,'/management.sch'))
-    return(paste0(l, " lines were updated in 'management.sch'. Original file is backed up in 'management_bak.sch'."))
+    return(paste0(l, " lines were updated (`hvkl` changed to `harv`) and same number added (with `kill` operations) in 'management.sch'. Original file is backed up in 'management_bak.sch'."))
   } else {
     return("No `hvkl` operations exist in 'management.sch'. File was not changed.")
   }
