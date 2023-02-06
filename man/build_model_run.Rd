@@ -4,10 +4,12 @@
 \alias{build_model_run}
 \title{Generate folder structure for SWAT execution}
 \usage{
-build_model_run(project_path)
+build_model_run(project_path, folder_name)
 }
 \arguments{
 \item{project_path}{Path to the SWAT project folder (i.e. TxtInOut)}
+
+\item{folder_name}{Name of the folder in which simulations are performed}
 }
 \description{
 Generate folder structure for SWAT execution

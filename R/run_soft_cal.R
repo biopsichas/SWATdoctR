@@ -13,7 +13,14 @@
 #'   and aquifer flow.
 #' @param baseflow_ratio Numeric value between 0 and 1 which defines the
 #'   fraction of water yield which is base flow.
-#'
+#' @param start_date (optional) Start date of the SWAT simulation. Provided as
+#'   character string in any ymd format (e.g. 'yyyy-mm-dd'), numeric value
+#'   in the form yyyymmdd, or in Date format.
+#' @param end_date (optional) End date of the SWAT simulation. Provided as
+#'   character string in any ymd format (e.g. 'yyyy-mm-dd'), numeric value
+#'   in the form yyyymmdd, or in Date format.
+#' @param years_skip (optional) Integer value to define the number of simulation
+#'   years that are skipped before writing SWAT model outputs.
 #' @param keep_folder (optional) If \code{keep_folder = TRUE}
 #'   '.model_run/verification' is kept and not deleted after finishing model runs.
 #'   In this case '.model_run' is reused in a new model run if \code{refresh = FALSE}.
@@ -26,11 +33,23 @@
 #'
 run_softcal_waterbalance <- function(project_path,
                                      wateryield_ratio, baseflow_ratio,
-                                     keep_folder = FALSE) {
+                                     start_date = NULL, end_date = NULL,
+                                     years_skip = NULL, keep_folder = FALSE) {
+  # Check settings before starting to set up
+  ## General function input checks
+  stopifnot(is.character(project_path))
+  stopifnot(is.numeric(wateryield_ratio))
+  stopifnot(wateryield_ratio >= 0 & wateryield_ratio <= 1)
+  stopifnot(is.numeric(baseflow_ratio))
+  stopifnot(baseflow_ratio >= 0 & baseflow_ratio <= 1)
+  stopifnot(is.logical(keep_folder))
 
   print("creating temp model directory")
   # create a temporary directory copy of the model setup
-  run_path <- build_model_run(project_path)
+  run_path <- build_model_run(project_path, '/.run_softcal_wb')
+
+  set_print_prt(project_path, run_path, outputs = 'wb_sft', years_skip)
+  set_time_sim(project_path, run_path, start_date, end_date)
 
   # print("downloading sft files")
   # downloads any missing sft file
@@ -61,8 +80,7 @@ run_softcal_waterbalance <- function(project_path,
 
   ## Get operating system and find SWAT executable file
   os <- get_os()
-  swat_exe <- find_swat_exe(project_path = path, os = os)
-
+  swat_exe <- find_swat_exe(project_path = run_path, os = os)
 
   print("running SWAT+ with soft-calibration routine")
   # copied from swat verify (do i need to import this?)
@@ -74,16 +92,16 @@ run_softcal_waterbalance <- function(project_path,
   # I originally wrote this since i was working in the original swat directory
   # it technically isnt needed when working with a copy, but it might be useful
   # so i'll leave it in here for now...
-  toggle_sft(temp_directory, switch = "off")
+  toggle_sft(run_path, switch = "off")
 
   print("reading results")
   # reads the results of the wb soft calibration
-  df <- read_wb_aa(temp_directory)
+  df <- read_wb_aa(run_path)
 
   # delete the temp directory if the user does not want to keep it.
   if (keep_folder == FALSE) {
     print("deleting temporary directory")
-    unlink(temp_directory, recursive = TRUE, force = TRUE)
+    unlink(run_path, recursive = TRUE, force = TRUE)
   }
 
   print("returning results..")

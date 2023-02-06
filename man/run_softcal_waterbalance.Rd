@@ -8,18 +8,32 @@ run_softcal_waterbalance(
   project_path,
   wateryield_ratio,
   baseflow_ratio,
+  start_date = NULL,
+  end_date = NULL,
+  years_skip = NULL,
   keep_folder = FALSE
 )
 }
 \arguments{
-\item{project_path}{Path to the SWAT+ project folder}
+\item{project_path}{Path to the SWAT+ project folder (i.e. TxtInOut).}
 
 \item{wateryield_ratio}{Numeric value between 0 and 1 which defines the
 fraction of precipitation which becomes water yield through fast, slow,
-and aquifer flow}
+and aquifer flow.}
 
 \item{baseflow_ratio}{Numeric value between 0 and 1 which defines the
-fraction of water yield which is base flow}
+fraction of water yield which is base flow.}
+
+\item{start_date}{(optional) Start date of the SWAT simulation. Provided as
+character string in any ymd format (e.g. 'yyyy-mm-dd'), numeric value
+in the form yyyymmdd, or in Date format.}
+
+\item{end_date}{(optional) End date of the SWAT simulation. Provided as
+character string in any ymd format (e.g. 'yyyy-mm-dd'), numeric value
+in the form yyyymmdd, or in Date format.}
+
+\item{years_skip}{(optional) Integer value to define the number of simulation
+years that are skipped before writing SWAT model outputs.}
 
 \item{keep_folder}{(optional) If \code{keep_folder = TRUE}
 '.model_run/verification' is kept and not deleted after finishing model runs.

@@ -15,8 +15,7 @@ run_swat_verification(
 )
 }
 \arguments{
-\item{project_path}{Character string, path to the SWAT+ project folder
-(i.e. TxtInOut).}
+\item{project_path}{Path to the SWAT+ project folder (i.e. TxtInOut).}
 
 \item{outputs}{Define the outputs that should be read after the simulation
 run. The outputs that are defined here depend on the verification steps

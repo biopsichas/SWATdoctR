@@ -7,8 +7,7 @@
 #' parametrization, parallel execution of simulations, or incremental saving of
 #' simulation runs is provided.
 #'
-#' @param project_path Character string, path to the SWAT+ project folder
-#'   (i.e. TxtInOut).
+#' @param project_path Path to the SWAT+ project folder (i.e. TxtInOut).
 #' @param outputs Define the outputs that should be read after the simulation
 #'   run. The outputs that are defined here depend on the verification steps
 #'   that should be performed on the outputs.
@@ -49,7 +48,7 @@ run_swat_verification <- function(project_path, outputs = c('wb', 'mgt', 'plt'),
   stopifnot(all(outputs %in% c('wb', 'mgt', 'plt')))
   stopifnot(is.logical(keep_folder))
 
-  run_path <- build_model_run(project_path)
+  run_path <- build_model_run(project_path, '/.run_verify')
 
   set_print_prt(project_path, run_path, outputs, years_skip)
   set_time_sim(project_path, run_path, start_date, end_date)
@@ -283,11 +282,12 @@ read_sch <- function(run_path) {
 #' Generate folder structure for SWAT execution
 #'
 #' @param project_path Path to the SWAT project folder (i.e. TxtInOut)
+#' @param folder_name  Name of the folder in which simulations are performed
 #'
 #' @keywords internal
 #'
-build_model_run <- function(project_path){
-  run_path <- paste0(project_path, '/.run_verify')
+build_model_run <- function(project_path, folder_name){
+  run_path <- paste0(project_path, folder_name)
   swat_files <- dir(project_path, full.names = TRUE)
   exclude <- ".txt$|.csv$|.db$"
   swat_files <- swat_files[!grepl(exclude,swat_files)]
@@ -337,6 +337,9 @@ set_print_prt <- function(project_path, run_path, outputs, years_skip) {
   }
   if ('plt' %in% outputs) {
     print_prt[36] <- "hru_pw                       y             n             n             n  "
+  }
+  if ('wb_sft' %in% outputs) {
+    print_prt[11] <- "basin_wb                     n             n             n             y  "
   }
 
   write_lines(print_prt, paste0(run_path,'/print.prt'))
