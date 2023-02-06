@@ -1,0 +1,5 @@
+water_balance.sft: written by SWATdoctR, corresponds to SWAT+Editor v2.1.0 for SWAT+ rev.60.5.4
+1
+name                   num
+basin                    1
+    name          surq_rto      latq_rto      perc_rto        et_rto     tileq_rto           pet           sed           wyr           bfr          solp

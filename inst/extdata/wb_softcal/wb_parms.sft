@@ -1,0 +1,13 @@
+ls_parms.cal: written by SWATdoctR, corresponds to SWAT+Editor v2.1.0 for SWAT+ rev.60.5.4
+ 10
+NAME             CHG_TYP       NEG       POS        LO        UP      unit
+cn2               abschg     -10.0      10.0      35.0      95.0          
+esco              abschg      -1.0       1.0       0.0       1.0          
+lat_len           pctchg     -50.0      50.0       5.0     300.0         m
+k_lo              pctchg     -99.0      30.0    0.0001     500.0      mm/h
+slope             pctchg     -25.0      25.0    0.0001       0.9       m/m
+tconc             pctchg     -30.0      30.0       5.0     960.0       min
+etco              abschg      -0.4	     0.4       0.8       1.2          
+perco             abschg      -0.7	     0.7      0.05      0.95          
+revapc            abschg      -0.4       0.4       0.0       0.4          
+cn3_swf           abschg      -1.2	     1.2       0.0       1.0          

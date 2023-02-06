@@ -7,7 +7,13 @@
 #' ratios the routine adjusts the respective model parameters to improve
 #' the fit of the simulated water balance components to the provided ratios.
 #'
-#' @param project_path Path to the SWAT+ project folder
+#' @param project_path Path to the SWAT+ project folder (i.e. TxtInOut).
+#' @param wateryield_ratio Numeric value between 0 and 1 which defines the
+#'   fraction of precipitation which becomes water yield through fast, slow,
+#'   and aquifer flow.
+#' @param baseflow_ratio Numeric value between 0 and 1 which defines the
+#'   fraction of water yield which is base flow.
+#'
 #' @param keep_folder (optional) If \code{keep_folder = TRUE}
 #'   '.model_run/verification' is kept and not deleted after finishing model runs.
 #'   In this case '.model_run' is reused in a new model run if \code{refresh = FALSE}.
@@ -18,25 +24,33 @@
 #' @importFrom processx run
 #' @export
 #'
-run_softcal_waterbalance <- function(project_path, keep_folder = FALSE) {
+run_softcal_waterbalance <- function(project_path,
+                                     wateryield_ratio, baseflow_ratio,
+                                     keep_folder = FALSE) {
+
   print("creating temp model directory")
   # create a temporary directory copy of the model setup
-  temp_directory <- build_model_run(project_path)
+  run_path <- build_model_run(project_path)
 
-  print("downloading sft files")
+  # print("downloading sft files")
   # downloads any missing sft file
   # Routine should also work offline.
   # CS will revise this function and move the files to
   # the package data folder from where the files will be loaded
-  download_sft_files(temp_directory)
+  # download_sft_files(temp_directory)
 
-  print("enabaling soft-cal routine")
+  # Build the water balance soft calibration input files and
+  # write them into the path where the softcal will be run.
+  build_wb_softcal_input(run_path, wateryield_ratio, baseflow_ratio)
+
+  # print("enabaling soft-cal routine")
   # enables the soft calibration routine
-  toggle_sft(temp_directory, switch = "on")
+  toggle_sft(run_path, switch = "on")
 
-  print("changing the WB parms")
+  # This function is replaced by build_wb_softcal_input()
+  # print("changing the WB parms")
   # modify the wb parms
-  modify_wb_parms(temp_directory)
+  # modify_wb_parms(temp_directory)
 
   # I would not print all the small things the routine does.
   # print("finding swat.exe")
@@ -44,12 +58,15 @@ run_softcal_waterbalance <- function(project_path, keep_folder = FALSE) {
   # No this function is already an internal function of SWATdoctR
   # I will move the function definition to a utils.R file as used
   # now by more than one run_* function
-  exepath <- find_swat_exe(project_path = path, os = os)
+
+  ## Get operating system and find SWAT executable file
+  os <- get_os()
+  swat_exe <- find_swat_exe(project_path = path, os = os)
+
 
   print("running SWAT+ with soft-calibration routine")
   # copied from swat verify (do i need to import this?)
-  msg <- run(run_os(exe = exepath , os = os),
-             wd = temp_directory,
+  msg <- run(run_os(swat_exe, os), wd = run_path,
              error_on_status = FALSE)
 
   print("disabling the SFT routine")
@@ -72,6 +89,57 @@ run_softcal_waterbalance <- function(project_path, keep_folder = FALSE) {
   print("returning results..")
   return(df)
 }
+
+#' Build/load the water balance soft calibration input files and write them
+#' into the folder where the model is executed.
+#'
+#' @param run_path Path to the copy of SWAT+ project where the soft calibration
+#'   will be executed
+#' @param wateryield_ratio Numeric value between 0 and 1 which defines the
+#'   fraction of precipitation which becomes water yield through fast, slow,
+#'   and aquifer flow
+#' @param baseflow_ratio Numeric value between 0 and 1 which defines the
+#'   fraction of water yield which is base flow
+#'
+#' @importFrom readr read_lines write_lines
+#'
+#' @keywords internal
+#'
+build_wb_softcal_input <- function(run_path, wateryield_ratio, baseflow_ratio) {
+  # Remove existing soft calibration files in run folder
+  invisible(
+   suppressWarnings(
+     file.remove(paste0(run_path, c('/water_balance.sft',
+                                    '/codes.sft',
+                                    '/wb_parms.sft')))
+   )
+  )
+  # Path where the SWATdoctR package was installed
+  pkg_path <- system.file(package = "SWATdoctR")
+
+  # Path to the water balance softcal input files
+  wb_sft_path <- paste0(pkg_path, '/extdata/wb_softcal')
+
+  # Copy codes and parameter input files into the model run folder
+  file.copy(paste0(wb_sft_path, '/codes.sft'), run_path)
+  file.copy(paste0(wb_sft_path, '/wb_parms.sft'), run_path)
+
+  # Read the header lines of the water balance softcal file
+  wb_sft <- read_lines(paste0(wb_sft_path, '/water_balance.sft'), lazy = FALSE)
+
+  # Generate value string which includes the water yield and baseflow ratios
+  wb_sft_val <- c(rep(0, 7), wateryield_ratio, baseflow_ratio, 0) %>%
+    sprintf(c('%16.0f', rep('%12.0f', 6), rep('%12.5f', 2), '%12.0f'), .) %>%
+    c('    null', .) %>%
+    paste(., collapse = '  ')
+
+  # Build the water balance soft calibration input file
+  wb_sft <- c(wb_sft, wb_sft_val)
+
+  # Write the water balance soft calibration input into the model run folder
+  write_lines(wb_sft, paste0(run_path, '/water_balance.sft'))
+}
+
 
 #' downloads the required .sft files from some source
 #' printing just for diagnostics, maybe remove.
