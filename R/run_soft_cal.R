@@ -1,9 +1,13 @@
-#' Runs the SWAT+ soft-calibration routine.
+#' Runs the SWAT+ soft-calibration routine for water balance components.
 #'
-#' write more info here?
+#' \code{run_softcal_waterbalance} executes the SWAT+ soft calibration
+#' routine to adjust the overall water balance of a SWAT+ model setup.
+#' The user can specify the \code{wateryield_ratio} and the
+#' \code{baseflow_ratio} of the simulated watershed. Based on the provided
+#' ratios the routine adjusts the respective model parameters to improve
+#' the fit of the simulated water balance components to the provided ratios.
 #'
-#' @param project_path Character string, path to the SWAT+ project folder
-#' @param os string of operating system
+#' @param project_path Path to the SWAT+ project folder
 #' @param keep_folder (optional) If \code{keep_folder = TRUE}
 #'   '.model_run/verification' is kept and not deleted after finishing model runs.
 #'   In this case '.model_run' is reused in a new model run if \code{refresh = FALSE}.
@@ -14,13 +18,16 @@
 #' @importFrom processx run
 #' @export
 #'
-soft_calibrate <- function(project_path, os, keep_folder = FALSE) {
+run_softcal_waterbalance <- function(project_path, keep_folder = FALSE) {
   print("creating temp model directory")
   # create a temporary directory copy of the model setup
-  temp_directory = build_model_run(project_path)
+  temp_directory <- build_model_run(project_path)
 
   print("downloading sft files")
   # downloads any missing sft file
+  # Routine should also work offline.
+  # CS will revise this function and move the files to
+  # the package data folder from where the files will be loaded
   download_sft_files(temp_directory)
 
   print("enabaling soft-cal routine")
@@ -31,9 +38,13 @@ soft_calibrate <- function(project_path, os, keep_folder = FALSE) {
   # modify the wb parms
   modify_wb_parms(temp_directory)
 
-  print("finding swat.exe")
+  # I would not print all the small things the routine does.
+  # print("finding swat.exe")
   # copied from swat verify (do i need to import this?)
-  exepath = find_swat_exe(project_path = path, os = os)
+  # No this function is already an internal function of SWATdoctR
+  # I will move the function definition to a utils.R file as used
+  # now by more than one run_* function
+  exepath <- find_swat_exe(project_path = path, os = os)
 
   print("running SWAT+ with soft-calibration routine")
   # copied from swat verify (do i need to import this?)
@@ -50,7 +61,7 @@ soft_calibrate <- function(project_path, os, keep_folder = FALSE) {
 
   print("reading results")
   # reads the results of the wb soft calibration
-  df = read_wb_aa(temp_directory)
+  df <- read_wb_aa(temp_directory)
 
   # delete the temp directory if the user does not want to keep it.
   if (keep_folder == FALSE) {
@@ -196,7 +207,7 @@ toggle_sft <- function(path, switch) {
 #' @keywords internal
 #' @importFrom data.table fread
 #' @importFrom tidyr unite
-#' @importFrom dplyr %>% slice filter ranking mutate_all tibble
+#' @importFrom dplyr %>% slice filter mutate_all tibble
 #'
 #' @return returns a tibble of the formatted output of the soft-cal routine
 #'
@@ -324,10 +335,10 @@ modify_wb_parms <- function(path) {
 
 # code to be executed: -----
 # (temp, not in this script obviously -- just for testing)
-library(dplyr);library(data.table);library(processx);library(tidyr);library(ggplot2)
-path = "C:/Users/NIBIO/Documents/GitLab/optain-swat/SWAT_softcal/swatplus_rev60_demo/"
-basin_wb_aa <- soft_calibrate(project_path = path, os = "windows", keep_folder = TRUE)
-basin_wb_aa %>% ggplot() + geom_col(mapping = aes(x = description, y = wateryld))
+# library(dplyr);library(data.table);library(processx);library(tidyr);library(ggplot2)
+# path = "C:/Users/NIBIO/Documents/GitLab/optain-swat/SWAT_softcal/swatplus_rev60_demo/"
+# basin_wb_aa <- soft_calibrate(project_path = path, os = "windows", keep_folder = TRUE)
+# basin_wb_aa %>% ggplot() + geom_col(mapping = aes(x = description, y = wateryld))
 
 # Next steps: ------
 # Implement the crop yield soft cal routine
