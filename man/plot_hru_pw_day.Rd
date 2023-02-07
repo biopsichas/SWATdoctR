@@ -4,7 +4,7 @@
 \alias{plot_hru_pw_day}
 \title{Plot daily simulated variables which are saved in hru_pw_day}
 \usage{
-plot_hru_pw_day(sim_verify, hru_id, var, years = 1900:2100)
+plot_hru_pw_day(sim_verify, hru_id, var, title = "", years = 1900:2100)
 }
 \arguments{
 \item{sim_verify}{Simulation output of the function \code{run_swat_verification()}.
@@ -14,6 +14,8 @@ be set in  \code{run_swat_verification()}}
 \item{hru_id}{Numeric vector with HRU ids for which variables should be plotted}
 
 \item{var}{Character vector that defines the variable names that are plotted}
+
+\item{title}{Character for title to be put in the figure.}
 
 \item{years}{Years of the simulated data for which varaibles are plotted.}
 }

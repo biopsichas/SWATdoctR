@@ -44,6 +44,7 @@ get_hru_id_by_attribute <- function(sim_verify, lum = NULL, mgt = NULL, soil = N
 #'   be set in  \code{run_swat_verification()}
 #' @param hru_id Numeric vector with HRU ids for which variables should be plotted
 #' @param var Character vector that defines the variable names that are plotted
+#' @param title Character for title to be put in the figure.
 #' @param years Years of the simulated data for which varaibles are plotted.
 #'
 #' @importFrom dplyr filter mutate select %>%
@@ -56,7 +57,7 @@ get_hru_id_by_attribute <- function(sim_verify, lum = NULL, mgt = NULL, soil = N
 #'
 #' @export
 #'
-plot_hru_pw_day <- function(sim_verify, hru_id, var, years = 1900:2100) {
+plot_hru_pw_day <- function(sim_verify, hru_id, var, title = "", years = 1900:2100) {
   plot_data <- sim_verify$hru_pw_day %>%
     filter(unit %in% hru_id) %>%
     filter(yr %in% years) %>%
@@ -67,7 +68,7 @@ plot_hru_pw_day <- function(sim_verify, hru_id, var, years = 1900:2100) {
 
   ggplot(plot_data) +
     geom_line(aes(x = date, y = value, color = unit, lty = unit)) +
-    labs(x = 'Date', color = 'HRU', lty = 'HRU') +
+    labs(x = 'Date', color = 'HRU', lty = 'HRU', title=title) +
     scale_x_date(date_labels = '%Y-%m-%d') +
     facet_grid(rows = vars(all_of(var)), scales = 'free_y', switch = 'y') +
     theme_bw() +
