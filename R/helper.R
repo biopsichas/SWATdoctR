@@ -47,3 +47,29 @@ insert_line_at <- function(dat, txt, insert_after){
   post <- dat[(insert_after+1):length(dat)]
   return(c(pre, txt, post))
 }
+
+#' Function to put option remove hide or show all lines in chart and this function also print chart.
+#'
+#' @param graph plotly graph object
+#' @importFrom plotly plotly_build layout
+#' @return plotly graph object with option to remove or show all lines
+#' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' hide_show(fig)
+#' }
+
+hide_show <- function(graph){
+  plotly_build(graph) %>%
+    layout(updatemenus = list(
+      list(type = "buttons", direction = "right", xanchor = "center", yanchor = "top",
+           showactive = FALSE, x = 0.3, y = 1.0,
+           buttons = list(
+             list(method = "restyle",
+                  args = list("visible", "all"),
+                  label = "show all"),
+             list(method = "restyle",
+                  args = list("visible", "legendonly"),
+                  label = "hide all")))))
+}

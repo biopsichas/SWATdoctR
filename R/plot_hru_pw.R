@@ -44,6 +44,7 @@ get_hru_id_by_attribute <- function(sim_verify, lum = NULL, mgt = NULL, soil = N
 #'   be set in  \code{run_swat_verification()}
 #' @param hru_id Numeric vector with HRU ids for which variables should be plotted
 #' @param var Character vector that defines the variable names that are plotted
+#' @param title Character for title to be put in the figure.
 #' @param years Years of the simulated data for which varaibles are plotted.
 #'
 #' @importFrom dplyr filter mutate select %>%
@@ -56,7 +57,7 @@ get_hru_id_by_attribute <- function(sim_verify, lum = NULL, mgt = NULL, soil = N
 #'
 #' @export
 #'
-plot_hru_pw_day <- function(sim_verify, hru_id, var, years = 1900:2100) {
+plot_hru_pw_day <- function(sim_verify, hru_id, var, title = "", years = 1900:2100) {
   plot_data <- sim_verify$hru_pw_day %>%
     filter(unit %in% hru_id) %>%
     filter(yr %in% years) %>%
@@ -67,7 +68,7 @@ plot_hru_pw_day <- function(sim_verify, hru_id, var, years = 1900:2100) {
 
   ggplot(plot_data) +
     geom_line(aes(x = date, y = value, color = unit, lty = unit)) +
-    labs(x = 'Date', color = 'HRU', lty = 'HRU') +
+    labs(x = 'Date', color = 'HRU', lty = 'HRU', title=title) +
     scale_x_date(date_labels = '%Y-%m-%d') +
     facet_grid(rows = vars(all_of(var)), scales = 'free_y', switch = 'y') +
     theme_bw() +
@@ -77,7 +78,6 @@ plot_hru_pw_day <- function(sim_verify, hru_id, var, years = 1900:2100) {
           strip.text = element_text(face = 'bold'),
           axis.title.y = element_blank())
 }
-
 
 #' Print the average annual qtile for HRUs
 #'
@@ -110,5 +110,79 @@ print_avannual_qtile <- function(sim_verify,
     filter(!lu_mgt %in% exclude_lum) %>%
     select(id, qtile, lu_mgt, mgt, soil) %>%
     arrange(qtile, id)
+}
+
+#' Aggregate and plot simulated variables saved in hru_pw_day
+#'
+#' @param sim_verify Simulation output of the function \code{run_swat_verification()}.
+#'   To plot the heat units at least the output option \code{outputs = 'mgt'} must
+#'   be set in  \code{run_swat_verification()}.
+#' @param hru_id Numeric vector with HRU ids for which variables should be plotted.
+#' @param var Character vector that defines the variable names that are plotted.
+#' @param period (optional) character describing, which time interval to display (default is "day",
+#' other examples are "week", "month", etc). \code{Default = "day"}
+#' @param fn_summarize (optional) function to recalculate to time interval (default is "mean", other examples
+#' are "median", "sum", etc). \code{Default = "mean"}
+#' @return plotly figure object
+#' @importFrom lubridate floor_date
+#' @importFrom plotly plot_ly layout
+#' @importFrom dplyr %>% rename summarize mutate group_by arrange
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' id <- get_hru_id_by_attribute(sim_nostress, "wwht_lum")
+#' plot_hru_var(sim_nostress, sample(id$id, 10), "lai")
+#' }
+
+plot_hru_var <- function(sim_verify, hru_id, var, period = "day", fn_summarize = "mean"){
+  options(dplyr.summarise.inform = FALSE)
+  df <- sim_verify$hru_pw_day[sim_verify$hru_pw_day$unit %in% hru_id, c("unit", "yr", "mon", "day", var)]
+  ##Aggregating data by time step
+  df$Date<- floor_date(ISOdate(df$yr, df$mon, df$day), period)
+  df <- df[c("Date", "unit", var)] %>%
+    rename(Values = 3) %>%
+    mutate(unit = paste('hru:', unit)) %>%
+    group_by(unit, Date) %>%
+    summarize(Values = get(fn_summarize)(Values))
+
+  ##Plotting
+  plot_ly(df %>% arrange(Date), x=~Date, y=~Values,  color = ~factor(unit), colors = "Set2", type = 'scatter', mode = 'lines',
+          connectgaps = FALSE) %>% layout(showlegend = TRUE) %>%
+    layout(title = paste(var, "parameter"), xaxis = list(title = "Date"), yaxis = list(title = "Values")) %>%
+    hide_show()
+}
+
+#' Plot simulated variables of filtered HRUs saved in hru_wb_aa with boxplots
+#'
+#' @param sim_verify Simulation output of the function \code{run_swat_verification()}.
+#'   To plot the heat units at least the output option \code{outputs = 'wb'} must
+#'   be set in  \code{run_swat_verification()}
+#' @param lum Optional character vector with landuse.lum labels
+#' @param mgt Optional character vector with management labels as defined in management.sch.
+#' @param soil Optional character vector with soil type labels as defined in the soil data.
+#' @return plot_ly multi boxplot figure for all available variables, which are not 0.
+#' @importFrom dplyr %>% mutate group_by group_map
+#' @importFrom tidyr pivot_longer
+#' @importFrom plotly plot_ly layout subplot
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' plot_hru_var_aa(sim_nostress, "wwht_lum")
+#' }
+
+plot_hru_var_aa <- function(sim_verify, lum = NULL, mgt = NULL, soil = NULL){
+  p <- paste(lum, mgt, soil)
+  id <- get_hru_id_by_attribute(sim_verify, lum, mgt, soil)
+  fig <- sim_verify$hru_wb_aa[sim_verify$hru_wb_aa$unit %in% id$id, -c(1:7)] %>%
+    .[, colSums(.!= 0) > 0] %>%
+    mutate(p = p) %>%
+    pivot_longer(-p,names_to = 'var', values_to = 'Values') %>%
+    group_by(p, var) %>%
+    group_map(~plot_ly(., y=~Values, color = ~var, colors = "cyan4", type = 'box'), keep = TRUE) %>%
+    subplot(nrows = 5) %>%
+    layout(title = paste("HRUs selected by", p))
+  return(fig)
 }
 

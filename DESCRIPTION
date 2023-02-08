@@ -22,7 +22,8 @@ Imports:
   stringr,
   tibble,
   tidyr,
-  tidyselect
+  tidyselect,
+  plotly
 Suggests:
   datasets,
   stats

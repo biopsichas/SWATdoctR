@@ -237,3 +237,44 @@ plot_monthly_snow <- function(sim_verify) {
     facet_wrap(.~process, ncol = 1) +
     theme_bw()
 }
+
+#' Plot selected basin variable aggregated by defined time step
+#'
+#' @param sim_verify Simulation output of the function \code{run_swat_verification()}.
+#'   To plot the climate outputs at least the output option \code{outputs = 'wb'} must
+#'   be set in  \code{run_swat_verification()}.
+#' @param var Character which defines the variable to be printed
+#' @param period (optional) character describing, which time interval to display (default is "day",
+#' other examples are "week", "month", etc). \code{Default = "day"}
+#' @param fn_summarize (optional) function to recalculate to time interval (default is "mean", other examples
+#' are "median", "sum", etc). \code{Default = "mean"}
+#' @importFrom lubridate floor_date
+#' @importFrom plotly plot_ly layout
+#' @importFrom dplyr %>% rename summarize mutate group_by arrange
+#' @return plotly figure object
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' plot_basin_var(sim_nostress, "percn")
+#' }
+
+plot_basin_var <- function(sim_verify, var, period = "day", fn_summarize = "mean"){
+  if(var %in% names(sim_verify$basin_wb_day)){
+    df <- sim_verify$basin_wb_day[,c("yr","mon","day",var)]
+  } else if (var %in% names(sim_verify$basin_pw_day)){
+    df <- sim_verify$basin_pw_day[,c("yr","mon","day",var)]
+  }
+  ##Aggregating data by time step
+  df$Date<- floor_date(ISOdate(df$yr, df$mon, df$day), period)
+  df <- df[c("Date", var)] %>%
+    rename(Values = 2) %>%
+    group_by(Date) %>%
+    summarize(Values = get(fn_summarize)(Values))
+  ##Plotting
+  plot_ly(df %>% arrange(Date), x=~Date, y=~Values, name = var, type = 'scatter', mode = 'lines',
+          connectgaps = FALSE) %>% layout(showlegend = FALSE) %>%
+    layout(title = paste(var, "variable"), yaxis = list(title = "Values"))
+}
+
+
