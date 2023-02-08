@@ -21,7 +21,7 @@ add_kill_op <- function(project_path){
       str_replace(c("forest_cut|grain1|grain|grass_bag|grass_mulch|hay_cut_high|hay_cut_low|orchard|peanuts|
                 silage|stover_high|stover_los|stover_med|tuber|vegetables"), "null") %>%
       str_replace_all("[:digit:]", "0") %>%
-      str_replace("0.00000", "0.00001") ## Kill operation at 0.00001 HU, same day as harvest.
+      str_replace("0.00000", "0.00001") ## Kill operation at 0.00001 HU, next day after harvest.
     mgt_sch[i] <- str_replace(mgt_sch[i], "hvkl", "harv")
     mgt_sch <- insert_line_at(mgt_sch, kill_line, insert_after=i)
     l <- l+1
