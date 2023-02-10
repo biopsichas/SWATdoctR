@@ -208,7 +208,7 @@ plot_hru_var_aa <- function(sim_verify, lum = NULL, mgt = NULL, soil = NULL){
 #' plot_water_partition(sim_nostress, tile = TRUE)
 #' }
 
-plot_water_partition <- function(sim_verify, tile = TRUE, lum = NULL, mgt = NULL, soil = NULL, exclude_lum = c(
+plot_water_partition <- function(sim_verify, tile = NULL, lum = NULL, mgt = NULL, soil = NULL, exclude_lum = c(
   "urhd_lum", "urmd_lum", "urml_lum",
   "urld_lum", "ucom_lum", "uidu_lum",
   "utrn_lum", "uins_lum", "urbn_lum")){
