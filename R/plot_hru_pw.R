@@ -79,38 +79,6 @@ plot_hru_pw_day <- function(sim_verify, hru_id, var, title = "", years = 1900:21
           axis.title.y = element_blank())
 }
 
-#' Print the average annual qtile for HRUs
-#'
-#' print_avannual_qtile prints a table with the average annual qtile in mm
-#' for HRUs that used a tile flow parametrization in landuse.lum
-#'
-#' @param sim_verify Simulation output of the function \code{run_swat_verification()}.
-#'   To plot the heat units at least the output option \code{outputs = 'wb'} must
-#'   be set in  \code{run_swat_verification()}
-#' @param exclude_lum Character vector to define land uses which are excluded
-#'   in the printed table.
-#'
-#' @importFrom dplyr arrange filter left_join rename select %>%
-#'
-#' @return Returns a table with hru ids average annual qtile and attributes.
-#'
-#' @export
-#'
-print_avannual_qtile <- function(sim_verify,
-                                 exclude_lum = c(
-                                   "urhd_lum", "urmd_lum", "urml_lum",
-                                   "urld_lum", "ucom_lum", "uidu_lum",
-                                   "utrn_lum", "uins_lum", "urbn_lum"
-                                 )) {
-
-  sim_verify$hru_wb_aa %>%
-    rename(id = unit) %>%
-    left_join(., sim_verify$lum_mgt, by = "id") %>%
-    filter(tile != 'null') %>%
-    filter(!lu_mgt %in% exclude_lum) %>%
-    select(id, qtile, lu_mgt, mgt, soil) %>%
-    arrange(qtile, id)
-}
 
 #' Aggregate and plot simulated variables saved in hru_pw_day
 #'
@@ -173,7 +141,11 @@ plot_hru_var <- function(sim_verify, hru_id, var, period = "day", fn_summarize =
 #' }
 
 plot_hru_var_aa <- function(sim_verify, lum = NULL, mgt = NULL, soil = NULL){
-  p <- paste(lum, mgt, soil)
+  p <- if(is.null(lum) & is.null(mgt) & is.null(soil)){
+    p <- "all"
+  } else {
+    p <- paste0(lum,"|",mgt,"|",soil)
+  }
   id <- get_hru_id_by_attribute(sim_verify, lum, mgt, soil)
   fig <- sim_verify$hru_wb_aa[sim_verify$hru_wb_aa$unit %in% id$id, -c(1:7)] %>%
     .[, colSums(.!= 0) > 0] %>%
@@ -182,7 +154,7 @@ plot_hru_var_aa <- function(sim_verify, lum = NULL, mgt = NULL, soil = NULL){
     group_by(p, var) %>%
     group_map(~plot_ly(., y=~Values, color = ~var, colors = "cyan4", type = 'box'), keep = TRUE) %>%
     subplot(nrows = 5) %>%
-    layout(title = paste("HRUs selected by", p))
+    layout(title = paste0("HRUs selected: ", p))
   return(fig)
 }
 
@@ -197,6 +169,8 @@ plot_hru_var_aa <- function(sim_verify, lum = NULL, mgt = NULL, soil = NULL){
 #' @param soil Optional character vector with soil type labels as defined in the soil data.
 #' @param exclude_lum Character vector to define land uses which are excluded
 #'   in the printed table.
+#' @param boxpoints Optional Boolean TRUE for displaying outliers, FALSE for hiding them.
+#'  \code{Default = TRUE}
 #' @return plotly figure object
 #' @importFrom dplyr %>% mutate group_by rename left_join summarise_all filter select
 #' @importFrom tidyr pivot_longer
@@ -211,7 +185,7 @@ plot_hru_var_aa <- function(sim_verify, lum = NULL, mgt = NULL, soil = NULL){
 plot_water_partition <- function(sim_verify, tile = NULL, lum = NULL, mgt = NULL, soil = NULL, exclude_lum = c(
   "urhd_lum", "urmd_lum", "urml_lum",
   "urld_lum", "ucom_lum", "uidu_lum",
-  "utrn_lum", "uins_lum", "urbn_lum")){
+  "utrn_lum", "uins_lum", "urbn_lum"), boxpoints = TRUE){
   df <- sim_verify$hru_wb_aa %>%
     rename(id = unit) %>%
     left_join(., sim_verify$lum_mgt, by = "id") %>%
@@ -261,7 +235,7 @@ plot_water_partition <- function(sim_verify, tile = NULL, lum = NULL, mgt = NULL
     add_pie(hole = 0.3)
   ##Preparing box plot
   box_pl <- plot_ly(df[c("var", "Values")], x=~Values,  color = ~var,  type = "box",  colors = pal,
-                    showlegend = F) %>%
+                    showlegend = F,  boxpoints = boxpoints) %>%
     layout(yaxis = list(autorange = "reversed"))
   ##Putting into one figure and annotations
   fig <- subplot(box_pl, pie_pl, nrows = 1, margin = 0.05) %>%

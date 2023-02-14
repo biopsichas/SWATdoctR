@@ -6,12 +6,13 @@
 \usage{
 plot_water_partition(
   sim_verify,
-  tile = TRUE,
+  tile = NULL,
   lum = NULL,
   mgt = NULL,
   soil = NULL,
   exclude_lum = c("urhd_lum", "urmd_lum", "urml_lum", "urld_lum", "ucom_lum", "uidu_lum",
-    "utrn_lum", "uins_lum", "urbn_lum")
+    "utrn_lum", "uins_lum", "urbn_lum"),
+  boxpoints = TRUE
 )
 }
 \arguments{
@@ -29,6 +30,9 @@ be set in  \code{run_swat_verification()}}
 
 \item{exclude_lum}{Character vector to define land uses which are excluded
 in the printed table.}
+
+\item{boxpoints}{Optional Boolean TRUE for displaying outliers, FALSE for hiding them.
+\code{Default = TRUE}}
 }
 \value{
 plotly figure object

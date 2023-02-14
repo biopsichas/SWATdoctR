@@ -6,4 +6,4 @@ utils::globalVariables(c("%&&%", "%//%", ".", "crop", "day", "ecanopy", "eplant"
                          "tile", "time_out", "tmn", "tmpav", "tmx", "topo", "val_max", "val_mean",
                          "val_min", "value", "value_sum", "var", "var1", "var2", "var3", "var4", "var5",
                          "wndspd", "yr", "rhum", "rm_skp", "Date", "Values", "surq_gen", "latq", "perc",
-                         "description"))
+                         "description", "flo", "..density.."))
