@@ -42,18 +42,21 @@ print_triggered_mgt <- function(sim_verify, hru_id, years = 1900:2100) {
 #' @param sim_verify Simulation output of the function \code{run_swat_verification()}.
 #'   To print the management at least the output option \code{outputs = 'mgt'} must
 #'   be set in  \code{run_swat_verification()}
+#' @param write_report (optional) Boolean TRUE for writing output to 'schedule_report.txt' file,
+#' FALSE - not preparing this file. Default \code{write_report = FALSE}.
 #'
 #' @return Returns a tibble that summarises all management schedules for
 #'   which operations where scheduled, that were either not triggered of
 #'   for which operation properties differ..
 #'
-#' @importFrom dplyr filter group_by group_split lead left_join mutate rename select slice_sample summarise %>%
+#' @importFrom dplyr filter group_by group_split lead left_join mutate rename select slice_sample summarise %>% rename_with full_join ends_with
 #' @importFrom purrr map
-#' @importFrom stringr str_sub
+#' @importFrom stringr str_sub str_remove
+#' @importFrom readr write_delim write_lines
 #'
 #' @export
 #'
-report_mgt <- function(sim_verify) {
+report_mgt <- function(sim_verify, write_report = FALSE) {
   yr_start <- min(sim_verify$mgt_out$year)
   mgt_lbl <- unique(sim_verify$lum_mgt$mgt)
   mgt_lbl <- mgt_lbl[!is.na(mgt_lbl)]
@@ -90,12 +93,14 @@ report_mgt <- function(sim_verify) {
     mutate(op_typ = str_sub(op_typ, 1, 4) %>%  tolower(.),
            op_typ = ifelse(op_typ == 'plan', 'plnt', op_typ))
 
-  schdl_join <- left_join(schdl_mgt, mgt_i,
-                          by = c("schedule", "year",  "mon", "day", "op_typ")) %>%
+  schdl_join <- full_join(schdl_mgt, mgt_i,
+                          by = c("schedule", "year",  "mon", "day", "op_typ", "op_data1" = "op_data1_trig"), keep = TRUE) %>%
+    select(-ends_with(".y")) %>%
+    rename_with(~str_remove(., '.x')) %>%
     select(schedule, year, mon, day, op_typ, op_data1_trig, starts_with('op_data')) %>%
     mutate(op_issue = is.na(op_data1_trig) | op_data1_trig != op_data1,
            year = year - yr_start + 1) %>%
-    filter(op_issue)
+    filter(op_issue & year <= max(sim_verify$mgt_out$year) - yr_start)
 
   schdl_report <- schdl_join %>%
     select(schedule, op_issue) %>%
@@ -111,6 +116,20 @@ report_mgt <- function(sim_verify) {
 
   schdl_report <- schdl_report %>%
     mutate(schedule_report = ops_detail)
+
+  if(write_report){
+    print("Writing schedule_report.txt")
+    write(paste("File was written with SWATdoctR at", Sys.time( )), file = "schedule_report.txt")
+    for (i in seq(1, length(schdl_report$schedule_report))){
+      mgt <- schdl_report$schedule[[i]]
+      id <- get_hru_id_by_attribute(sim_verify, mgt = mgt)$id[1]
+      write_lines(" ", "schedule_report.txt", append = TRUE)
+      write_lines(paste("HRU number -", id, "- management name:", mgt), "schedule_report.txt", append = TRUE)
+      write_lines(" ", "schedule_report.txt", append = TRUE)
+      write_delim(schdl_report$schedule_report[[i]], "schedule_report.txt", delim = "\t", append = TRUE, col_names = TRUE)
+    }
+    print(paste("The file schedule_report.txt was written in", getwd( ), "directory."))
+  }
 
   return(schdl_report)
 }

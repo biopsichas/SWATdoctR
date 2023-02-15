@@ -69,7 +69,6 @@ run_swat_verification <- function(project_path, outputs = c('wb', 'mgt', 'plt'),
     model_output <- err_msg
   } else if(nchar(msg$stderr) == 0) {
     model_output <- list()
-
     if ('plt' %in% outputs) {
       model_output$hru_pw_day <- read_tbl('hru_pw_day.txt', run_path, 3)
     }
@@ -77,7 +76,12 @@ run_swat_verification <- function(project_path, outputs = c('wb', 'mgt', 'plt'),
       model_output$basin_wb_day <- read_tbl('basin_wb_day.txt', run_path, 3)
       model_output$basin_pw_day <- read_tbl('basin_pw_day.txt', run_path, 3)
       model_output$hru_wb_aa <- read_tbl('hru_wb_aa.txt', run_path, 3)
-      model_output$recall_yr <- read_tbl('recall_yr.txt', run_path, 3)
+      tryCatch({
+        model_output$recall_yr <- read_tbl('recall_yr.txt', run_path, 3)
+      },
+      error = function(e) {
+        model_output$recall_yr <- NULL
+      })
     }
     if ('mgt' %in% outputs) {
       model_output$mgt_out <- read_mgt(run_path)

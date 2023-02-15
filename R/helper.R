@@ -75,3 +75,32 @@ hide_show <- function(graph){
                   args = list("visible", "legendonly"),
                   label = "hide all")))))
 }
+
+#' Remove tail endings for management, plant community, land use classes
+#'
+#' This function is required for SWATfarmR generated management files
+#' as management.sch, plant.ini, landuse.lum and hru-data.hru can get too
+#' long names for swat executable.
+#'
+#' @param f multiline character
+#' @param pattern pattern after which to remove tail
+#' @return corrected multiline character
+#' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' library(readr)
+#' landuse <- read_lines(paste0(project_path,'/landuse.lum'), lazy = FALSE)
+#' landuse  <- remove_tail(landuse, "lum")
+#' landuse  <- remove_tail(landuse, "comm")
+#' landuse  <- remove_tail(landuse, "mgt")
+#' write_lines(landuse, paste0(project_path,'/landuse_new.lum'))
+#' }
+
+remove_tail <- function(f, pattern){
+  ind <- grep(paste0("_", pattern,"_"), f)
+  for(i in ind){
+    f[i] <- gsub(paste0("(_", pattern, ").*?\\s"), "\\1 ", f[i])
+  }
+  return(f)
+}

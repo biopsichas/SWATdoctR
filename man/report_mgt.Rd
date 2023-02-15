@@ -4,12 +4,15 @@
 \alias{report_mgt}
 \title{Generate a report table that compares the scheduled and triggered managements}
 \usage{
-report_mgt(sim_verify)
+report_mgt(sim_verify, write_report = FALSE)
 }
 \arguments{
 \item{sim_verify}{Simulation output of the function \code{run_swat_verification()}.
 To print the management at least the output option \code{outputs = 'mgt'} must
 be set in  \code{run_swat_verification()}}
+
+\item{write_report}{(optional) Boolean TRUE for writing output to 'schedule_report.txt' file,
+FALSE - not preparing this file. Default \code{write_report = FALSE}.}
 }
 \value{
 Returns a tibble that summarises all management schedules for
