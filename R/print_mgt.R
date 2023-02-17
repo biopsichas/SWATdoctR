@@ -29,8 +29,7 @@ print_triggered_mgt <- function(sim_verify, hru_id, years = 1900:2100) {
     mutate(op_data3 = ifelse(operation != 'FERT', 0, op_data3)) %>%
     # mutate()
     # mutate(date = ymd(paste(year, mon, day, sep = '-'))) %>%
-    select(., year, mon, day, phuplant, operation, op_data1, op_data3) %>%
-    print(., n = Inf)
+    select(., year, mon, day, phuplant, operation, op_data1, op_data3)
 }
 
 #' Generate a report table that compares the scheduled and triggered managements
