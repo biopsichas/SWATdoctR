@@ -97,7 +97,8 @@ print_avannual_qtile <- function(sim_verify,
 #'   be set in  \code{run_swat_verification()}
 #' @param exclude_lum Character vector to define land uses which are excluded
 #'   in the printed table.
-#'
+#' @importFrom dplyr count
+#' @importFrom stats density
 #' @importFrom ggplot2 ggplot geom_histogram labs theme_bw theme geom_density aes
 #' @return Returns ggplot object with histogram and density curve for tile drain from distribution.
 #' @export

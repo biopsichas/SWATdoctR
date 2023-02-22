@@ -19,6 +19,7 @@ Imports:
   processx,
   purrr,
   readr,
+  stats,
   stringr,
   tibble,
   tidyr,
@@ -26,8 +27,7 @@ Imports:
   plotly,
   utils
 Suggests:
-  datasets,
-  stats
+  datasets
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
