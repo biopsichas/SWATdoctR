@@ -6,7 +6,7 @@
 \usage{
 plot_water_partition(
   sim_verify,
-  tile = TRUE,
+  tile = NULL,
   lum = NULL,
   mgt = NULL,
   soil = NULL,
