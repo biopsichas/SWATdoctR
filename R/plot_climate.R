@@ -194,12 +194,12 @@ plot_climate_annual <- function(sim_verify) {
           legend.background = element_blank(),
           legend.box.background = element_rect(colour = "black", fill =alpha('white', 0.6)))
 
-  gg_et_stat  <- plot_stat_text(clim_data_annual,
+  gg_et_stat  <- plot_stat_text(tbl = clim_data_annual,
                                 vars = c('pet', 'et', 'ecanopy', 'eplant', 'esoil'),
-                                c(2,1,0,3,4), 'mm', T)
-  gg_pcp_stat <- plot_stat_text(clim_data_annual,
+                                pos = c(2,1,0,3,4), unit_add = 'mm', add_title = T)
+  gg_pcp_stat <- plot_stat_text(tbl = clim_data_annual,
                                 vars = c('precip', 'rainfall', 'snofall'),
-                                c(5,4,3), 'mm', F)
+                                pos = c(5,4,3), unit_add = 'mm', add_title = F)
   tmp_stat <- clim_data %>%
     filter(name %in% c('tmn', 'tmx', 'tmpav')) %>%
     group_by(name) %>%
@@ -209,15 +209,18 @@ plot_climate_annual <- function(sim_verify) {
     mutate(name = c('tmn day', 'tmpav', 'tmx day'),
            value_sum = c(val_min[1], val_mean[2], val_max[3])) %>%
     select(name, value_sum)
-  gg_tmp_stat <- plot_stat_text(tmp_stat,
+  gg_tmp_stat <- plot_stat_text(tbl = tmp_stat,
                                 vars = c('tmn day', 'tmpav', 'tmx day'),
-                                c(5,4,3), '\u00b0C', F, digit = 1)
-  gg_rhum_stat <- plot_stat_text(clim_data_annual, vars = c('rhum'),
-                                c(5), '', F, digit = 2, type = 'value_mean')
-  gg_wnd_stat <- plot_stat_text(clim_data_annual, vars = c('wndspd'),
-                                c(5), '', 'm/s', digit = 2, type = 'value_mean')
-  gg_slr_stat <- plot_stat_text(clim_data_annual, vars = c('solarad'),
-                                c(5), 'MJ m^-2', F)
+                                pos = c(5,4,3), unit_add = '\u00b0C', add_title = F,
+                                digit = 1)
+  gg_rhum_stat <- plot_stat_text(tbl = clim_data_annual, vars = c('rhum'),
+                                pos = c(5), unit_add = '', add_title = F,
+                                digit = 2, type = 'value_mean')
+  gg_wnd_stat <- plot_stat_text(tbl = clim_data_annual, vars = c('wndspd'),
+                                pos = c(5), unit_add = 'm/s', add_title = F,
+                                digit = 2, type = 'value_mean')
+  gg_slr_stat <- plot_stat_text(tbl = clim_data_annual, vars = c('solarad'),
+                                pos = c(5), unit_add = 'MJ m^-2', add_title = F)
 
   gg_et + gg_et_stat + gg_pcp + gg_pcp_stat + gg_tmp + gg_tmp_stat +
     gg_rhum + gg_rhum_stat + gg_wnd + gg_wnd_stat +
@@ -239,7 +242,8 @@ plot_climate_annual <- function(sim_verify) {
 #'
 #' @keywords internal
 #'
-plot_stat_text <- function(tbl, vars, pos, unit_add, add_title, digit = 0, type = 'value_sum') {
+plot_stat_text <- function(tbl, vars, pos, unit_add, add_title,
+                           digit = 0, type = 'value_sum') {
   tbl_mean <- tbl %>%
     filter(name %in% vars) %>%
     select(name, all_of(type)) %>%
