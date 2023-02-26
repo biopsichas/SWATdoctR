@@ -7,10 +7,11 @@
 plot_variable_at_harvkill(sim_verify, variable, years = 1900:2100)
 }
 \arguments{
-\item{sim_verify}{Simulation output of the function
-\code{run_swat_verification()}.
-To plot the heat units at least the output option \code{outputs = 'mgt'}
-must be set in \code{run_swat_verification()}}
+\item{sim_verify}{Simulation output of the function \code{run_swat_verification()}
+as a single object or as a list of objects (representing \code{run_swat_verification()}
+function runs with different settings).
+  To plot the heat units at least the output option \code{outputs = 'mgt'}
+  must be set in \code{run_swat_verification()}.}
 
 \item{variable}{Selected variable to be plotted. Must be one of: 'phu',
 'yield', 'bioms'}
@@ -24,4 +25,17 @@ ggplot boxplot the selected variable at harvest-kill.
 plot_variable_at_harvkill plots boxplots of one of the variables crop heat unit
 fractions ('phu'), crop yields ('yield'), or plant biomass ('bioms') for crops
 at harvest-kill of a crop separated for all identified crops.
+}
+\examples{
+\dontrun{
+##As single object
+plot_variable_at_harvkill(sim_nostress, 'yield')
+##As a list
+sim_list<- list(
+no_stress = sim_nostress,
+only_nutrient = sim_nutrientstress,
+all_stress = sim_allstress)
+plot_variable_at_harvkill(sim_list, 'yield')
+}
+
 }
