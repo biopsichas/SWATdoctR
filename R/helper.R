@@ -4,7 +4,7 @@
 #'   (i.e. TxtInOut).
 #' @return updated management.sch file
 #' @importFrom readr read_lines write_lines
-#' @importFrom stringr str_replace
+#' @importFrom stringr str_replace str_count
 #' @export
 #'
 #' @examples
