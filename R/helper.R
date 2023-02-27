@@ -17,9 +17,18 @@ add_kill_op <- function(project_path){
   l <- 0
   while(length(grep("hvkl", mgt_sch)) != 0){
     i <- grep("hvkl", mgt_sch)[1]
+    ii <- i - 1
+    ##Fixing counter
+    while (str_count(mgt_sch[ii], "\\S+") != 3 & ii != 0) {
+      ii <- ii - 1
+    }
+    ##Adding one additional operation
+    c <- strsplit(mgt_sch[ii], " +")[[1]]
+    mgt_sch[ii] <-  paste0(c[1], "                           ", as.numeric(c[2])+1, "          ", c[3], "  ")
+    ##Changing hvkl to harv and kill operations
     kill_line <- str_replace(mgt_sch[i], "hvkl", "kill") %>%
       str_replace(c("forest_cut|grain1|grain|grass_bag|grass_mulch|hay_cut_high|hay_cut_low|orchard|peanuts|
-                silage|stover_high|stover_los|stover_med|tuber|vegetables"), "null") %>%
+              silage|stover_high|stover_los|stover_med|tuber|vegetables"), "null") %>%
       str_replace_all("[:digit:]", "0") %>%
       str_replace("0.00000", "0.00001") ## Kill operation at 0.00001 HU, next day after harvest.
     mgt_sch[i] <- str_replace(mgt_sch[i], "hvkl", "harv")
