@@ -16,6 +16,7 @@ Imports:
   ggplot2,
   lubridate,
   patchwork,
+  png,
   processx,
   purrr,
   readr,
