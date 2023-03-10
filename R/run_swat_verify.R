@@ -73,8 +73,11 @@ run_swat_verification <- function(project_path, outputs = c('wb', 'mgt', 'plt'),
       model_output$hru_pw_day <- read_tbl('hru_pw_day.txt', run_path, 3) %>% lwr
     }
     if ('wb' %in% outputs) {
-      model_output$basin_wb_day <- read_tbl('basin_wb_day.txt', run_path, 3) %>% lwr
-      model_output$basin_pw_day <- read_tbl('basin_pw_day.txt', run_path, 3) %>% lwr
+      model_output$basin_wb_day  <- read_tbl('basin_wb_day.txt', run_path, 3) %>% lwr
+      model_output$basin_pw_day  <- read_tbl('basin_pw_day.txt', run_path, 3) %>% lwr
+      model_output$basin_wb_aa   <- read_wb_aa(run_path) %>% lwr
+      model_output$basin_aqu_aa  <- read_tbl('basin_aqu_aa.txt',  run_path, 3) %>% lwr
+      # model_output$basin_cha_aa  <- read_tbl('basin_sd_cha_aa.txt',  run_path, 3) %>% lwr
       model_output$hru_wb_aa <- read_tbl('hru_wb_aa.txt', run_path, 3) %>% lwr
       tryCatch({
         model_output$recall_yr <- read_tbl('recall_yr.txt', run_path, 3) %>% lwr
