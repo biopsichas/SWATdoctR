@@ -119,7 +119,7 @@ Management operation inputs in a SWAT+ model setup can be very complex and compr
 Function `report_mgt()` can be applied to identify discrepancies between management operations in model input files and what operations are actually triggered in the model. If `write_report` parameter is set to TRUE, function also provides a report in *"schedule_report.txt"* text file. 
 
 ```{r}
-mgt_report <- report_mgt(sim_nostress, TRUE)
+mgt_report <- report_mgt(sim_nostress)
 mgt_report
 print(paste("Issues were identified in", length(mgt_report$schedule), "schedules."))
 ```
@@ -136,6 +136,8 @@ if(length(mgt_report$schedule)>=sel_nb){
   ##Print selected case into interactive table
   print(paste("Table of issues for selected management", sel_mgt))
   create_dt(mgt_report$schedule_report[[sel_nb]])
+} else {
+   id <- get_hru_id_by_attribute(sim_nostress)
 }
 ```
 
@@ -211,17 +213,19 @@ The next step includes activating potential sources for plant growth stresses, s
 Setting `nostress = 0` while running `run_swat_verification()` function will activate all stresses, however turning off the nutrient plant stress only can as well be a useful option for analyses (`nostress = 2`).  This is particularly useful for eliminating the fertilization impact on the plant growth and focusing only on the weather/climate and structural setting of the plant. Particularly, the aeration, temperature, and water stress, alongside yields are relevant outputs to be analyzed. A simulation with inactive nutrient stress will provide a good approximation of possible yields with an optimal fertilization and ideal plant nutrient supply. All other stresses will indicate the need of irrigation, drainage or plant-specific parameter adjustments for a plant to grow. 
 
 ```{r, include=FALSE}
-rm(sim_nostress)
-sim_stress_nutrient <- readRDS(file = rpath[3])
+sim_except_nutrient <- readRDS(file = rpath[3])
 sim_stress_all <- readRDS(file = rpath[1])
+sim_list <- list(no_stress = sim_nostress["mgt_out"],
+                 except_nutrient = sim_except_nutrient["mgt_out"],
+                 stress_all = sim_stress_all["mgt_out"])
+rm(sim_nostress)
 ```
 
 ### Examine stress factors 
 
 It is possible to plot each case side-by-side for examination with same functions applied. For instance `plot_variable_at_harvkill()` could be run to check how much stress factors affect in each case. 
 
-```{r fig.width = 10, fig.height = 6}
-plot_variable_at_harvkill(sim_stress_nutrient, variable = 'stress')
+```{r fig.width = 15, fig.height = 10}
 plot_variable_at_harvkill(sim_stress_all, variable = 'stress')
 ```
 
@@ -230,15 +234,8 @@ plot_variable_at_harvkill(sim_stress_all, variable = 'stress')
 Additionally, we can look how plant growth is different in the same HRUs. 
 
 ```{r fig.width = 10, fig.height = 6}
-plot_hru_pw(sim_stress_nutrient,  id$id[1], var = c('lai', 'bioms'))
+plot_hru_pw(sim_except_nutrient,  id$id[1], var = c('lai', 'bioms'))
 plot_hru_pw(sim_stress_all,  id$id[1], var = c('lai', 'bioms'))
-```
-
-### Assess difference at the harvest for PHU
-
-```{r fig.width = 10, fig.height = 6}
-plot_variable_at_harvkill(sim_stress_nutrient, variable = 'phu')
-plot_variable_at_harvkill(sim_stress_all, variable = 'phu')
 ```
 
 ### Assess difference for yields
@@ -246,8 +243,7 @@ plot_variable_at_harvkill(sim_stress_all, variable = 'phu')
 Could be useful to examine how harvest is affected by stresses factors. 
 
 ```{r fig.width = 10, fig.height = 6}
-plot_variable_at_harvkill(sim_stress_nutrient, variable = 'yield')
-plot_variable_at_harvkill(sim_stress_all, variable = 'yield')
+plot_variable_at_harvkill(sim_list, variable = 'yield')
 ```
 
 ## Simulated point sources and tile drains
