@@ -47,8 +47,10 @@ set_print_prt <- function(project_path, run_path, outputs, years_skip) {
   }
 
   if ('wb' %in% outputs) {
-    print_prt[11] <- "basin_wb                     y             n             n             n  "
+    print_prt[11] <- "basin_wb                     y             n             n             y  "
     print_prt[14] <- "basin_pw                     y             n             n             n  "
+    print_prt[15] <- "basin_aqu                    n             n             n             y  "
+    print_prt[18] <- "basin_sd_cha                 n             n             n             y  "
     print_prt[33] <- "hru_wb                       n             n             n             y  "
     print_prt[45] <- "recall                       n             n             y             y  "
   }
