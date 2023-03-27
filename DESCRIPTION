@@ -2,12 +2,12 @@ Package: SWATdoctR
 Type: Package
 Title: Finding the right diagnoses and treatments for SWAT+ models
 Version: 0.1.14
-Author: c(person("Svajunas", "Plunge",
-             email = "svajunas_plunge@sggw.edu.pl",
-             role = c("aut")),
-          person("Christoph", "Schürz",
+Author: c(person("Christoph", "Schürz",
              email = "christoph.schuerz@ufz.de",
-             role = c("aut", "cre")))
+             role = c("aut", "cre")),
+          person("Svajunas", "Plunge",
+             email = "svajunas_plunge@sggw.edu.pl",
+             role = c("aut")))
 Maintainer: Christoph Schuerz <christoph.schuerz@ufz.de>
 Description: A collection of functions for verification and evaluation of SWAT+ model setups. 
 Imports:
