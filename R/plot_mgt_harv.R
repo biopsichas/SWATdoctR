@@ -181,9 +181,10 @@ filter_hru_at_harvkill <- function(sim_verify, ...) {
   sim_verify$mgt_out %>%
     mutate(date = ymd(paste(year, mon, day, sep = '-'))) %>%
     filter(operation == 'HARVEST') %>%
-    select(hru, date, op_typ, phuplant, plant_bioms, op_var, var4, var5, var3, var1, var2) %>%
-    set_names(c('hru', 'date', 'crop', 'phu', 'plant_bioms', 'yield', 'water_stress', 'aero_stress',
+    select(hru, year, date, op_typ, phuplant, plant_bioms, op_var, var4, var5, var3, var1, var2) %>%
+    set_names(c('hru','year' , 'date', 'crop', 'phu', 'plant_bioms', 'yield', 'water_stress', 'aero_stress',
                 'temp_stress', 'n_stress', 'p_stress')) %>%
-    filter(., ...)
+    filter(., ...) %>%
+    select(-year)
 }
 
