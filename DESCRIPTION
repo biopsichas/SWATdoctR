@@ -1,7 +1,7 @@
 Package: SWATdoctR
 Type: Package
 Title: Finding the right diagnoses and treatments for SWAT+ models
-Version: 0.1.15
+Version: 0.1.17
 Author: c(person("Christoph", "Schürz",
              email = "christoph.schuerz@ufz.de",
              role = c("aut", "cre")),

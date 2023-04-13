@@ -204,9 +204,18 @@ prepare_biomass <- function(mgt_out, years) {
     filter(year %in% years) %>%
     filter(operation %in% c('HARVEST', 'KILL')) %>%
     group_by(hru, year, mon, day) %>%
-    mutate(n = n()) %>%
-    ungroup() %>%
-    filter(n == 2, operation == 'HARVEST') %>%
+    mutate(n_op = n()) %>%
+    ungroup()
+
+  crop_rmv <- filter(bioms, n_op != 2) %>% .$op_typ %>% unique()
+
+  if(length(crop_rmv) > 0) {
+    message('Data for the following crops were removed before plotting:\n',
+            paste(crop_rmv, collapse = ', '), '\n')
+  }
+
+  bioms <- bioms %>%
+    filter(n_op == 2, operation == 'HARVEST') %>%
     select(op_typ, plant_bioms) %>%
     set_names(c('crop', 'var'))
 
@@ -230,14 +239,37 @@ prepare_biomass <- function(mgt_out, years) {
 prepare_phu <- function(mgt_out, years) {
   phu_tbl <- mgt_out %>%
     mutate(date = 1e4*year + 100*mon + day) %>%
+    filter(operation %in% c('PLANT','HARVEST', 'KILL')) %>%
     select(hru, date, year, operation, op_typ, phuplant) %>%
-    group_by(hru, op_typ, year) %>%
-    mutate(is_kill = ifelse(operation == 'KILL', TRUE, FALSE)) %>%
+    group_by(hru, op_typ) %>%
+    mutate(grw_group = ifelse(operation == 'PLANT', 1, 0),
+           grw_group = cumsum(grw_group)) %>% #filter(hru == 4557) %>% View()
     ungroup() %>%
-    arrange(hru, date) %>%
-    mutate(is_kill = is_kill | lead(is_kill)) %>%
-    filter(is_kill) %>%
-    group_by(hru, op_typ, year) %>%
+    filter(operation != 'PLANT') %>%
+    group_by(hru, op_typ, grw_group) %>%
+    mutate(n_op = n()) %>%
+    ungroup()
+
+  crop_only_kill  <- filter(phu_tbl, n_op == 1 & operation == 'KILL') %>% .$op_typ %>% unique()
+  crop_multi_harv <- filter(phu_tbl, n_op > 2) %>% .$op_typ %>% unique()
+
+  if(length(crop_only_kill) > 0) {
+    message('For the following crops no harvest was found before the kill operation:\n',
+            paste(crop_only_kill, collapse = ', '), '\n',
+            'These data were removed before plotting.\n')
+  }
+
+  if(length(crop_only_kill) > 0) {
+    message('For the following crops multiple harvests were detected before the kill operation:\n',
+            paste(crop_multi_harv, collapse = ', '), '\n',
+            'These data were removed before plotting.\n')
+  }
+
+  phu_tbl <- phu_tbl %>%
+    filter(n_op == 2) %>%
+    group_by(hru, year, op_typ) %>%
+  # ungroup() %>%
+    # filter(n_op > 1) %>%
     mutate(date_diff = diff(date)) %>%
     ungroup() %>%
     filter(year %in% years)
@@ -249,10 +281,10 @@ prepare_phu <- function(mgt_out, years) {
       .$op_typ %>%
       unique(.)
 
-    message('For the following crops the difference between the kill operation\n',
-            'and the operation before that was more than 1 day:\n',
+    message('For the following crops the difference between the last harvest and\n',
+            'the final kill operation was more than 1 day:\n',
             paste(crop_diff, collapse = ', '), '\n',
-            'The plotted PHU fractions may therefore not be correct.')
+            'The plotted PHU fractions may therefore not be correct.\n')
   }
 
   phu <- phu_tbl %>%
