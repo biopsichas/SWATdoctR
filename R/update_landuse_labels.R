@@ -10,11 +10,11 @@
 #' @return Rewrites the input files hru-data.hru, landuse.lum, management.sch,
 #'   and plant.ini with shorter labels.
 #'
-#' @importFrom dplyr distinct left_join group_by group_split mutate select %>%
+#' @importFrom dplyr bind_rows distinct left_join group_by group_split mutate select %>%
 #' @importFrom purrr list_c list_rbind map map_lgl map2 map2_df
 #' @importFrom readr read_lines write_lines
 #' @importFrom stringr str_detect str_remove str_remove_all str_replace
-#' @importFrom tibble tibble
+#' @importFrom tibble tibble add_row
 #'
 #' @export
 #'
@@ -60,12 +60,18 @@ update_landuse_labels <- function(project_path) {
   mgt_lbl <- lu_lbl %>%
     mutate(schedule = str_replace(lu_mgt, 'lum', 'mgt'),
            schedule_upd = str_replace(lu_mgt_upd, 'lum', 'mgt')) %>%
-    select(schedule, schedule_upd)
+    select(schedule, schedule_upd) %>%
+    add_row(schedule = 'null', schedule_upd = 'null')
 
   pcm_lbl <- lu_lbl %>%
     mutate(plnt_com = str_replace(lu_mgt, 'lum', 'comm'),
            plnt_com_upd = str_replace(lu_mgt_upd, 'lum', 'com')) %>%
-    select(plnt_com, plnt_com_upd)
+    select(plnt_com, plnt_com_upd) %>%
+    add_row(plnt_com = 'null', plnt_com_upd = 'null')
+
+  # Added to account for both variants 'comm' and 'com'
+  pcm_lbl <- mutate(pcm_lbl, plnt_com = str_replace(plnt_com, 'comm', 'com')) %>%
+    bind_rows(pcm_lbl)
 
   hru_data <- hru_data %>%
     left_join(., lu_lbl, by = 'lu_mgt') %>%
@@ -77,14 +83,16 @@ update_landuse_labels <- function(project_path) {
                  c('%8d', '%-16s', rep('%16s', 8)),
                  paste0(project_path, '/hru-data.hru'))
 
-
-
   landuse_lum <- landuse_lum %>%
     left_join(., lu_lbl, by = c('name' = 'lu_mgt')) %>%
     mutate(name = lu_mgt_upd) %>%
     select(-lu_mgt_upd) %>%
-    mutate(plnt_com = str_replace(name, 'lum', 'com'),
-           mgt      = str_replace(name, 'lum', 'mgt'))
+    left_join(., pcm_lbl, by = 'plnt_com') %>%
+    mutate(plnt_com = plnt_com_upd) %>%
+    select(-plnt_com_upd) %>%
+    left_join(., mgt_lbl, by = c('mgt' = 'schedule')) %>%
+    mutate(mgt = schedule_upd) %>%
+    select(-schedule_upd)
 
   write_tbl_file(landuse_lum,
                  landuse_lum_head,
