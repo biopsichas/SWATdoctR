@@ -349,12 +349,11 @@ prepare_stress <- function(mgt_out, years) {
 
   stress <- bind_rows(stress_mono, stress_rota) %>%
     set_names(c('crop', 'water', 'aeration',
-                'temperature', 'nitrogen', 'phosphorus')) %>%
+                'temperature', 'phosphorus', 'nitrogen')) %>%
     pivot_longer(., cols = - crop, names_to = 'stress', values_to = 'var') %>%
     mutate(., stress = factor(stress,
                               levels = c('water', 'aeration', 'temperature',
-                                         'nitrogen', 'phosphorus')))
-
+                                         'phosphorus', 'nitrogen')))
   return(stress)
 }
 
