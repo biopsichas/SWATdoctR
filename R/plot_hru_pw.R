@@ -131,6 +131,7 @@ plot_hru_pw_day <- function(sim_verify, hru_id, var, years = 1900:2100, add_crop
       gg_crop <- ggplot(crop_dates) +
         geom_rect(aes(xmin = start, xmax = end, ymin = id- 0.35, ymax = id + 0.35, fill = hru)) +
         geom_text(aes(x = mid, y = id, label = op_typ)) +
+        scale_x_date(limits = c(min(plot_data$date), max(plot_data$date))) +
         scale_y_continuous(breaks = y_labels$id, labels = y_labels$hru) +
         scale_fill_manual(values = crop_col_assign$col) +
         labs(y = 'hru') +
