@@ -53,6 +53,7 @@ get_hru_id_by_attribute <- function(sim_verify, lum = NULL, mgt = NULL, soil = N
 #' @importFrom tibble tibble
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom tidyselect all_of
+#' @importFrom grDevices palette.colors
 #' @import ggplot2
 #' @import patchwork
 #'

@@ -9,6 +9,8 @@
 #' @importFrom dplyr %>% mutate group_by group_map select bind_rows case_when
 #' @importFrom ggplot2 ggplot geom_line facet_wrap labs theme_bw theme aes
 #' @importFrom tidyr pivot_longer
+#' @importFrom ggrepel geom_text_repel
+#' @importFrom tidyselect any_of
 #' @export
 #'
 #' @examples
@@ -17,31 +19,39 @@
 #' }
 
 plot_ps <- function(sim_verify, conc = FALSE){
+  ##Function to calculate concentration
+  calc_conc <- function(df) {
+    pivot_longer(df, !any_of(c("yr", "name", "flo")), names_to = 'var', values_to = 'Values') %>%
+      mutate(Values = ifelse(var == "sed", 1000000*Values/flo, 1000*Values/flo)) %>%
+      select(any_of(c("yr", "name", "var", "Values"))) %>%
+      bind_rows(select(df, any_of(c("yr", "name", "flo"))) %>%
+                  mutate(var = "flo") %>%
+                  rename(Values = flo) %>%
+                  mutate(Values = Values/(24*60*60*365.25))) %>%
+      mutate(var = case_when(var == 'flo' ~ "flo m3/s",
+                             var %in% c("orgn", "no3", "nh3", "no2") ~ paste(var, "N mg/l"),
+                             var %in% c("sedp", "solp") ~ paste(var, "P mg/l"),
+                             TRUE ~  paste(var, "mg/l")))
+  }
+  ##Function to calculate loads
+  calc_load <- function(df) {
+    pivot_longer(df, !any_of(c("yr", "name")), names_to = 'var', values_to = 'Values') %>%
+      mutate(var = case_when(var == 'flo' ~ "flo m3/d",
+                             var == 'sed' ~ "sed t/y",
+                             var %in% c("orgn", "no3", "nh3", "no2") ~ paste(var, "N kg/y"),
+                             var %in% c("sedp", "solp") ~ paste(var, "P kg/y"),
+                             TRUE ~  paste(var, "kg/y")))
+  }
+  ##Case non constant point sources
   if(!is.null(sim_verify$recall_yr)){
     df <- sim_verify$recall_yr[, -c(1:3,6)] %>%
       .[, colSums(.!= 0) > 0] %>%
-      mutate(name = gsub("hru00", "ps", name))
+      mutate(name = gsub("hru00", "ps", name),
+             yr = as.factor(yr))
     if(conc){
-      df <- df %>%
-        pivot_longer(-c(yr, name, flo), names_to = 'var', values_to = 'Values') %>%
-        mutate(Values = ifelse(var == "sed", 1000000*Values/flo, 1000*Values/flo)) %>%
-        select(yr, name, var, Values) %>%
-        bind_rows(df[c("yr", "name", "flo")] %>%
-                    mutate(var = "flo") %>%
-                    rename(Values = flo) %>%
-                    mutate(Values = Values/(24*60*60*365.25))) %>%
-        mutate(var = case_when(var == 'flo' ~ "flo m3/s",
-                               var %in% c("orgn", "no3", "nh3", "no2") ~ paste(var, "N mg/l"),
-                               var %in% c("sedp", "solp") ~ paste(var, "P mg/l"),
-                               TRUE ~  paste(var, "mg/l")))
+      df <- calc_conc(df)
     } else {
-      df <- df %>%
-        pivot_longer(-c(yr, name), names_to = 'var', values_to = 'Values') %>%
-        mutate(var = case_when(var == 'flo' ~ "flo m3/d",
-                               var == 'sed' ~ "sed t/y",
-                               var %in% c("orgn", "no3", "nh3", "no2") ~ paste(var, "N kg/y"),
-                               var %in% c("sedp", "solp") ~ paste(var, "P kg/y"),
-                               TRUE ~  paste(var, "kg/y")))
+      df <- calc_load(df)
     }
     fig <- ggplot(df, aes(x=yr, y=Values,  group=name, colour=name))+
       geom_line(linewidth=1)+
@@ -52,10 +62,45 @@ plot_ps <- function(sim_verify, conc = FALSE){
             strip.text = element_text(color = "white", face="bold"),
             panel.border = element_rect(colour = "grey80"),
             axis.text.x = element_text(angle = 25, hjust=1))
-
-    return(fig)
+  }
+  ##Case for constant point sources
+  if(!is.null(sim_verify$exco_om)){
+    df <- sim_verify$exco_om %>%
+      .[, colSums(.!= 0) > 0] %>%
+      mutate(name = gsub("hru00", "ps", name))
+    if(conc){
+      df <- calc_conc(df)
+    } else {
+      df <- calc_load(df)
+    }
+    ##Putting into single figure
+    if(exists("fig")){
+      fig <- fig +
+        geom_hline(data = df,
+                   aes(yintercept = Values), linetype = 'dashed', linewidth=0.75) +
+        geom_text_repel(data = df, aes(0, Values,label = name, vjust = -1, hjust = -1),
+                        size = 3, show.legend = FALSE, inherit.aes = FALSE, segment.color = "grey")
+    } else {
+      fig <- ggplot()+
+        facet_wrap(~var, scales = "free_y")+
+        geom_hline(data = df,
+                   aes(yintercept = Values), linetype = 'dashed', linewidth=0.75) +
+        geom_text_repel(data = df, aes(0, Values,label = name, vjust = -1, hjust = -1),
+                        size = 3, show.legend = FALSE, inherit.aes = FALSE, segment.color = "grey")+
+        theme_bw()+
+        theme(strip.background = element_rect(fill = "grey50", colour = "grey80"),
+              strip.text = element_text(color = "white", face="bold"),
+              panel.border = element_rect(colour = "grey80"),
+              axis.text.x = element_blank(),
+              axis.ticks.x = element_blank(),
+              axis.title.x = element_blank())
+    }
+  }
+  ##If no point sources exist
+  if(is.null(sim_verify$recall_yr) & is.null(sim_verify$exco_om)){
+    return(print("No point sources exists in this model setup!!!"))
   } else {
-    print("No point sources exists in this model setup!!!")
+    return(fig)
   }
 }
 

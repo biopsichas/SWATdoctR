@@ -85,6 +85,12 @@ run_swat_verification <- function(project_path, outputs = c('wb', 'mgt', 'plt'),
       error = function(e) {
         model_output$recall_yr <- NULL
       })
+      tryCatch({
+        model_output$exco_om <- read_tbl('exco_om.exc', run_path, 2) %>% lwr
+      },
+      error = function(e) {
+        model_output$exco_om <- NULL
+      })
     }
     if ('mgt' %in% outputs) {
       model_output$mgt_out <- read_mgt(run_path) %>% lwr
