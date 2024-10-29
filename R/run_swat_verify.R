@@ -143,8 +143,15 @@ read_tbl <- function(file, run_path, n_skip) {
     }
   }
 
-  fread(file_path, skip = n_skip, header = FALSE) %>%
-    set_names(., col_names) %>%
+  df <- fread(file_path, skip = n_skip, header = FALSE)
+
+  if(ncol(df) != length(col_names)) {
+    warning(paste0('Number of columns in the ',"'", file, "'", ' does not match the number of column names.
+    Columns without values are dropped out. If you need these columns, please check the output file.'))
+  }
+
+  df %>%
+    set_names(., col_names[c(1:ncol(df))]) %>%
     tibble(.)
 }
 

@@ -317,8 +317,10 @@ read_wb_aa <- function(path) {
 
   # .. and add placeholder names for the last n columns which did not get a name
   # if we don't do this, dplyr gets angry in the next line
-  colnames(basin_wb_aa)[no_name_columns] <-
-    letters[1:length(no_name_columns)]
+  if(length(no_name_columns) > 0) {
+    colnames(basin_wb_aa)[no_name_columns] <-
+      letters[1:length(no_name_columns)]
+  }
 
   # remove rows 1 to 3, as they don't contain any real data
   basin_wb_aa <- basin_wb_aa %>% filter(!row_number() %in% c(1:3))
@@ -327,15 +329,17 @@ read_wb_aa <- function(path) {
   # the new column will be named description and describes what the softcal
   # algorithm did in that step. (So its probably important).
   # the united columns are separated by a space (trailing space exists now..)
-  basin_wb_aa = tidyr::unite(data = basin_wb_aa,
-                             col = description,
-                             no_name_columns,
-                             sep = " ")
+  if(length(no_name_columns) > 0) {
+    basin_wb_aa = tidyr::unite(data = basin_wb_aa,
+                               col = description,
+                               no_name_columns,
+                               sep = " ")
+  }
 
   # figure out which columns should be a double and not a string
   # (everything except for name and description columns)
   dbl_cols = basin_wb_aa %>% colnames()
-  dbl_cols = dbl_cols[!dbl_cols %in% c("name", "description")]
+  dbl_cols = dbl_cols[!dbl_cols %in% unique(c(c("name", "description"), dbl_cols[grepl("[A-Za-z]", basin_wb_aa)]))]
   # and convert them to numeric
   basin_wb_aa = basin_wb_aa %>% mutate_at(dbl_cols, as.numeric)
 
