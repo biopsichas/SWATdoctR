@@ -51,7 +51,7 @@ plot_climate_annual <- function(sim_verify) {
 
   gg_et <- ggplot() +
     geom_col(data = et_tbl, aes(x = yr, y = value_sum, fill = name)) +
-    geom_errorbarh(data = pet_tbl, aes(xmax = yr + 0.5, xmin = yr - 0.5, y = value_sum, height = 0, col = name), lwd = 1) +
+    geom_errorbar(data = pet_tbl, aes(xmax = yr + 0.5, xmin = yr - 0.5, y = value_sum, col = name), lwd = 1) +
     scale_color_manual(values = 'black') +
     scale_fill_manual(values = c('skyblue3', 'springgreen3', 'wheat3')) +
     ylim(c(0, 1.1*y_lim)) +
@@ -102,9 +102,9 @@ plot_climate_annual <- function(sim_verify) {
     pivot_longer(cols = -yr)
 
   gg_tmp <- ggplot() +
-    geom_errorbarh(data = tmp_tbl, aes(xmax = yr + 0.5, xmin = yr - 0.5,
-                                       y = value, height = 0, col = name),
-                   linewidth = 1) +
+    geom_errorbar(data = tmp_tbl, aes(xmax = yr + 0.5, xmin = yr - 0.5,
+                                      y = value, col = name),
+                  linewidth = 1) +
     scale_color_manual(values = c('dodgerblue4', 'black', 'tomato3')) +
     # geom_step(data = pet_tbl, aes(x = yr, y = value_sum), direction = 'mid') +
     labs(y = 'Temperature (\u00b0C)') +
@@ -136,9 +136,9 @@ plot_climate_annual <- function(sim_verify) {
   }
 
   gg_rhum <- ggplot() +
-    geom_errorbarh(data = rhum_tbl, aes(xmax = yr + 0.5, xmin = yr - 0.5,
-                                        y = value, height = 0, col = name),
-                   linewidth = 1) +
+    geom_errorbar(data = rhum_tbl, aes(xmax = yr + 0.5, xmin = yr - 0.5,
+                                       y = value, col = name),
+                  linewidth = 1) +
     scale_color_manual(values = c('dodgerblue4', 'black', 'tomato3')) +
     # geom_step(data = pet_tbl, aes(x = yr, y = value_sum), direction = 'mid') +
     labs(y = 'Relative humidity (-)') +
@@ -163,9 +163,9 @@ plot_climate_annual <- function(sim_verify) {
     pivot_longer(cols = -yr)
 
   gg_wnd <- ggplot() +
-    geom_errorbarh(data = wnd_tbl, aes(xmax = yr + 0.5, xmin = yr - 0.5,
-                                        y = value, height = 0, col = name),
-                   linewidth = 1) +
+    geom_errorbar(data = wnd_tbl, aes(xmax = yr + 0.5, xmin = yr - 0.5,
+                                      y = value,col = name),
+                  linewidth = 1) +
     scale_color_manual(values = c('dodgerblue4', 'black', 'tomato3')) +
     # geom_step(data = pet_tbl, aes(x = yr, y = value_sum), direction = 'mid') +
     labs(y = expression(Wind~speed~(m~s^{-1}))) +
