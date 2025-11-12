@@ -114,7 +114,7 @@ run_swat_verification <- function(project_path, outputs = c('wb', 'mgt', 'plt'),
 #' Read SWAT+ output that is arranged in a tabular format (most outputs)
 #' and return the read output table in a tibble format
 #'
-#' @param out_file Name of the output file that should be read.
+#' @param file Name of the output file that should be read.
 #' @param run_path Path to the folder where simulations are performed
 #' @param n_skip Integer number, how many lines to skip when reading table
 #'
