@@ -8,7 +8,7 @@ Author: c(person("Christoph", "Schürz",
           person("Svajunas", "Plunge",
              email = "svajunas_plunge@sggw.edu.pl",
              role = c("aut")))
-Maintainer: Christoph Schuerz <christoph.schuerz@ufz.de>
+Maintainer: Svajunas Plunge <svajunas_plunge@sggw.edu.pl>
 Description: A collection of functions for verification and evaluation of SWAT+ model setups. 
 Imports:
   data.table,
@@ -34,4 +34,4 @@ Suggests:
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
