@@ -8,4 +8,7 @@ articles:
   qa-st4: qa-st4.html
   qa-st5: qa-st5.html
   qa: qa.html
-last_built: 2025-11-18T19:34Z
+last_built: 2025-11-20T09:20Z
+urls:
+  reference: https://biopsichas.github.io/SWATdoctR/reference
+  article: https://biopsichas.github.io/SWATdoctR/articles

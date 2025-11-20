@@ -13,7 +13,7 @@ be set in  \code{run_swat_verification()}.}
 }
 \value{
 Returns a patchwork of ggplots for the annual values of the simulated
-  climate variables.
+climate variables.
 }
 \description{
 plot_climate_annual uses the simulated basin averages of pet, the different

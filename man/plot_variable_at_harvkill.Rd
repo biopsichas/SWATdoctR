@@ -10,8 +10,8 @@ plot_variable_at_harvkill(sim_verify, variable, years = 1900:2100)
 \item{sim_verify}{Simulation output of the function \code{run_swat_verification()}
 as a single object or as a list of objects (representing \code{run_swat_verification()}
 function runs with different settings).
-  To plot the heat units at least the output option \code{outputs = 'mgt'}
-  must be set in \code{run_swat_verification()}.}
+To plot the heat units at least the output option \code{outputs = 'mgt'}
+must be set in \code{run_swat_verification()}.}
 
 \item{variable}{Selected variable to be plotted. Must be one of: 'phu',
 'yield', 'bioms'}

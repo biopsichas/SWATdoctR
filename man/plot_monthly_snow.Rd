@@ -13,7 +13,7 @@ be set in  \code{run_swat_verification()}.}
 }
 \value{
 Returns a ggplots for the monthly average values of the simulated
-  precip, snofall and snomlt.
+precip, snofall and snomlt.
 }
 \description{
 plot_snow_monthly uses the simulated basin averages of precip, and snofall,

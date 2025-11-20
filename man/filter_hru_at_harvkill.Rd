@@ -10,12 +10,12 @@ filter_hru_at_harvkill(sim_verify, ...)
 \item{sim_verify}{Simulation output of the function \code{run_swat_verification()}
 as a single object or as a list of objects (representing \code{run_swat_verification()}
 function runs with different settings).
-  To plot the heat units at least the output option \code{outputs = 'mgt'}
-  must be set in \code{run_swat_verification()}.}
+To plot the heat units at least the output option \code{outputs = 'mgt'}
+must be set in \code{run_swat_verification()}.}
 
 \item{...}{Boolean operations to be applied in the filter operation of the
 management simulation outputs. Possible variables are \code{crop, phu, plant_bioms,
-yield, water_stress, aero_stress, temp_stress, n_stress} and \code{p_stress}.}
+  yield, water_stress, aero_stress, temp_stress, n_stress} and \code{p_stress}.}
 }
 \description{
 The function can be complementary to \code{plot_variable_at_harvkill()} plots.

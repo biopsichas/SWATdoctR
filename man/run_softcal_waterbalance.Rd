@@ -42,7 +42,7 @@ In this case '.model_run' is reused in a new model run if \code{refresh = FALSE}
 }
 \value{
 Returns the simulation results for the soft calibration routine as a
-  tibble.
+tibble.
 }
 \description{
 \code{run_softcal_waterbalance} executes the SWAT+ soft calibration

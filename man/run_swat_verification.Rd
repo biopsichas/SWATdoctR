@@ -44,7 +44,7 @@ In this case '.model_run' is reused in a new model run if \code{refresh = FALSE}
 }
 \value{
 Returns the simulation results for the defined output variables as a
-  list of tibbles.
+list of tibbles.
 }
 \description{
 This function allows to run a SWAT2012 project in R.

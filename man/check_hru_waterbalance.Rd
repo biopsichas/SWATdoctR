@@ -30,7 +30,7 @@ or to also include the respective average annual water balance values.}
 }
 \value{
 Returns a table of HRUs for which at least one of the selected checks
-  identified a potential issue.
+identified a potential issue.
 }
 \description{
 This function applies check rules which were proposed by White et al. (2014)

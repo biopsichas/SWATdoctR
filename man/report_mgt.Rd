@@ -16,8 +16,8 @@ FALSE - not preparing this file. Default \code{write_report = FALSE}.}
 }
 \value{
 Returns a tibble that summarises all management schedules for
-  which operations where scheduled, that were either not triggered of
-  for which operation properties differ..
+which operations where scheduled, that were either not triggered of
+for which operation properties differ..
 }
 \description{
 report_mgt compares the scheduled management operations for all schedules

@@ -1,5 +1,12 @@
+^renv$
+^renv\.lock$
+.gitignore
 ^.*\.Rproj$
 ^\.Rproj\.user$
-test*
-template*
-env*
+^LICENSE\.md$
+^test*
+^README\.Rmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^vignettes$

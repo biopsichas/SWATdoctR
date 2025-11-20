@@ -17,7 +17,7 @@ Default is FALSE.}
 }
 \value{
 Returns a ggplot flow chart with the simulated average annual water
-  balance.
+balance.
 }
 \description{
 This function uses average annual outputs from basin_wb_aa and

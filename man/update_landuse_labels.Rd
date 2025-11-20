@@ -11,7 +11,7 @@ update_landuse_labels(project_path)
 }
 \value{
 Rewrites the input files hru-data.hru, landuse.lum, management.sch,
-  and plant.ini with shorter labels.
+and plant.ini with shorter labels.
 }
 \description{
 The maximum length for labels in input files which point to entries in other
