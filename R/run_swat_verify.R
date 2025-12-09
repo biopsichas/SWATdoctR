@@ -209,6 +209,7 @@ read_sch <- function(run_path) {
     str_replace_all(., '\t', ' ') %>%
     str_split(., '[:space:]+')
 
+
   n_elem <- map_int(schdl, length)
   schdl <- schdl[n_elem != 1]
   n_elem <- map_int(schdl, length)
@@ -217,12 +218,21 @@ read_sch <- function(run_path) {
   schdl_name <- map_chr(schdl_def_pos, ~ schdl[[.x]][1])
 
   schdl_start <- schdl_def_pos + 1
-  schdl_end <- c(schdl_def_pos[2:length(schdl_def_pos)] - 1, length(schdl))
+
+  # avoid NA in schdl_end when there is only one schedule definition
+  if (length(schdl_def_pos) > 1) {
+    schdl_end <- c(schdl_def_pos[2:length(schdl_def_pos)] - 1, length(schdl))
+  } else {
+    schdl_end <- length(schdl)
+  }
+
+  # drop schedules with no entries instead of using dummy very large indices
   no_entry <- schdl_start > schdl_end
-  schdl_start[no_entry] <- length(schdl) + 1
-  schdl_end[no_entry] <- length(schdl) + 1
-  schdl_start[no_entry] <- 1e9
-  schdl_end[no_entry] <- 1e9
+  if (any(no_entry)) {
+    schdl_start <- schdl_start[!no_entry]
+    schdl_end   <- schdl_end[!no_entry]
+    schdl_name  <- schdl_name[!no_entry]
+  }
 
   schdl_mgt <- map2(schdl_start, schdl_end, ~ schdl[.x:.y]) %>%
     map(., unlist) %>%
