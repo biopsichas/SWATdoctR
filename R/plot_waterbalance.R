@@ -16,18 +16,25 @@
 #'
 #' @importFrom dplyr %>% distinct
 #' @importFrom png readPNG
+#' @importFrom stats setNames
 #' @import ggplot2
 #' @export
 
 plot_waterbalance <- function(sim_verify, simplified = FALSE) {
+  wb_col <- c(8:12, 14:18, 20:23, 27:32, 34:39, 43)
+  aqu_col <- c(8:10, 12:13, 22:24)
   if (simplified) {
     img <- readPNG(paste0(system.file(package = "SWATdoctR"), '/extdata/swatplus_wb_simple.png'))
-    wb_aa  <- round(unlist(sim_verify$basin_wb_aa[,c(8:12, 14:18, 20:23, 27:32, 34:39, 43)]), 1)
-    aqu_aa <- round(unlist(sim_verify$basin_aqu_aa[,c(8:10, 12:13, 22:24)]), 1)
+    v  <- unlist(sim_verify$basin_wb_aa[, wb_col])
+    wb_aa <- setNames(round(as.numeric(v), 1), names(v))
+    v <- unlist(sim_verify$basin_aqu_aa[,aqu_col])
+    aqu_aa <- setNames(round(as.numeric(v), 1), names(v))
   } else {
     img <- readPNG(paste0(system.file(package = "SWATdoctR"), '/extdata/swatplus_wb.png'))
-    wb_aa  <- round(unlist(sim_verify$basin_wb_aa[,c(8:12, 14:18, 20:23, 27:32, 34:39, 43)]), 2)
-    aqu_aa <- round(unlist(sim_verify$basin_aqu_aa[,c(8:10, 12:13, 22:24)]), 2)
+    v  <- unlist(sim_verify$basin_wb_aa[, wb_col])
+    wb_aa <- setNames(round(as.numeric(v), 2), names(v))
+    v <- unlist(sim_verify$basin_aqu_aa[,aqu_col])
+    aqu_aa <- setNames(round(as.numeric(v), 2), names(v))
   }
 
   if (aqu_aa['flo_cha'] == 0 & aqu_aa['flo_res'] == 0 & aqu_aa['flo'] > 0) {

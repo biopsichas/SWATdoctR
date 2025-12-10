@@ -2,8 +2,7 @@
 % Please edit documentation in R/update_input_files.R
 \name{set_time_sim}
 \alias{set_time_sim}
-\title{Read and set SWAT+ time.sim file write the updated time.sim and the original file
-as a backup 'time_backup.sim'}
+\title{Read and set SWAT+ time.sim file}
 \usage{
 set_time_sim(project_path, run_path, start_date, end_date)
 }
@@ -12,16 +11,20 @@ set_time_sim(project_path, run_path, start_date, end_date)
 
 \item{run_path}{Path to the folder where simulations are performed}
 
-\item{start_date}{(optional) Start date of the SWAT simulation. Provided as
-character string in any ymd format (e.g. 'yyyy-mm-dd'), numeric value
-in the form yyyymmdd, or in Date format.}
+\item{start_date}{(optional) Start date of the SWAT simulation.
+Provided as character string in any ymd format
+(e.g. 'yyyy-mm-dd'), numeric value in the form yyyymmdd,
+or in Date format.}
 
-\item{end_date}{(optional) End date of the SWAT simulation. Provided as
-character string in any ymd format (e.g. 'yyyy-mm-dd'), numeric value
-in the form yyyymmdd, or in Date format.}
+\item{end_date}{(optional) End date of the SWAT simulation.
+Provided as character string in any ymd format
+(e.g. 'yyyy-mm-dd'), numeric value in the form yyyymmdd,
+or in Date format.}
 }
 \description{
-Read and set SWAT+ time.sim file write the updated time.sim and the original file
-as a backup 'time_backup.sim'
+Read the SWAT+ \code{time.sim} file, update simulation start and end dates,
+and write the updated file to \code{run_path}. The original file is kept
+in the project directory (optionally the user may create a backup as
+\code{time_backup.sim} beforehand).
 }
 \keyword{internal}

@@ -2,8 +2,7 @@
 % Please edit documentation in R/update_input_files.R
 \name{set_print_prt}
 \alias{set_print_prt}
-\title{Read and set SWAT+ print.prt file write the updated print.prt and the original file
-as a backup 'print_backup.prt'}
+\title{Read and set SWAT+ print.prt file}
 \usage{
 set_print_prt(project_path, run_path, outputs, years_skip)
 }
@@ -12,15 +11,17 @@ set_print_prt(project_path, run_path, outputs, years_skip)
 
 \item{run_path}{Path to the folder where simulations are performed}
 
-\item{outputs}{Define the outputs that should be read after the simulation
-run. The outputs that are defined here depend on the verification steps
-that should be performed on the outputs.}
+\item{outputs}{Define the outputs that should be read after the
+simulation run. The outputs that are defined here depend on the
+verification steps that should be performed on the outputs.}
 
-\item{years_skip}{(optional) Integer value to define the number of simulation
-years that are skipped before writing SWAT model outputs.}
+\item{years_skip}{(optional) Integer value to define the number of
+simulation years that are skipped before writing SWAT model outputs.}
 }
 \description{
-Read and set SWAT+ print.prt file write the updated print.prt and the original file
-as a backup 'print_backup.prt'
+Read the SWAT+ \code{print.prt} file, update it according to the requested
+outputs, and write the updated file to \code{run_path}. The original file
+is kept in the project directory (optionally the user may create a
+backup as \code{print_backup.prt} beforehand).
 }
 \keyword{internal}

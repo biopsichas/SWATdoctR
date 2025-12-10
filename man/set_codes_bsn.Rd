@@ -2,19 +2,22 @@
 % Please edit documentation in R/update_input_files.R
 \name{set_codes_bsn}
 \alias{set_codes_bsn}
-\title{Set the nostress value in the code.bsn file}
+\title{Set the \code{nostress} value in the codes.bsn file}
 \usage{
 set_codes_bsn(run_path, nostress)
 }
 \arguments{
 \item{run_path}{Path to the folder where simulations are performed}
 
-\item{nostress}{nostress parameter in the 'codes.bsn' file to activate/deactivate
-plant stresses for plant growth. Set \code{nostress = 1} to activate all stress
-factors, \code{nostress = 1} to deactivate all stress factors, and \code{nostress = 1}
-to only activate nutrient plant stress.}
+\item{nostress}{\code{nostress} parameter in the 'codes.bsn' file to
+activate/deactivate plant stresses for plant growth.
+\itemize{
+\item \code{nostress = 0}: all plant stresses applied
+\item \code{nostress = 1}: turn off all plant stresses
+\item \code{nostress = 2}: turn off nutrient plant stress only
+}}
 }
 \description{
-Set the nostress value in the code.bsn file
+Set the \code{nostress} value in the codes.bsn file
 }
 \keyword{internal}
