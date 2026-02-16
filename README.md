@@ -3,7 +3,7 @@ Introduction to SWATdoctR
 
 # SWATdoctR
 
-[![](https://img.shields.io/badge/devel%20version-0.1.26-blue.svg)](https://github.com/biopsichas/SWATdoctR)
+[![](https://img.shields.io/badge/devel%20version-0.1.27-blue.svg)](https://github.com/biopsichas/SWATdoctR)
 [![](https://img.shields.io/github/last-commit/biopsichas/SWATdoctR.svg)](https://github.com/biopsichas/SWATdoctR/commits/green)
 [![](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![Project Status: Active - The project has reached a stable, usable

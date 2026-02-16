@@ -245,3 +245,62 @@ read_sch <- function(run_path) {
 
   return(schdl_mgt)
 }
+
+#' reads and re-formats the SWAT+ soft calibration output
+#'
+#' @param path string to (temporary) directory
+#' @keywords internal
+#' @importFrom data.table fread
+#' @importFrom tidyr unite
+#' @importFrom dplyr %>% slice filter mutate_all tibble row_number mutate_at
+#'
+#' @return returns a tibble of the formatted output of the soft-cal routine
+#'
+read_wb_aa <- function(path) {
+  # add a backslash onto the path, so its compatible with build_model_run()
+  path = paste0(path, "/")
+
+  # read the wb_aa file from its path
+  # fill = TRUE then in case the rows have unequal length, blank fields are
+  # implicitly filled. (which is the case for this file)
+  basin_wb_aa = fread(paste0(path, "basin_wb_aa.txt"), fill = TRUE)
+
+  # change the column names to those of the second row in the text file.
+  colnames(basin_wb_aa) <-
+    basin_wb_aa %>% slice(2) %>% unlist(., use.names = F)
+
+  # some columns are not given a name (thanks..) need to figure out which ones
+  # they are...
+  no_name_columns = which(colnames(basin_wb_aa) == "")
+
+  # .. and add placeholder names for the last n columns which did not get a name
+  # if we don't do this, dplyr gets angry in the next line
+  if(length(no_name_columns) > 0) {
+    colnames(basin_wb_aa)[no_name_columns] <-
+      letters[1:length(no_name_columns)]
+  }
+
+  # remove rows 1 to 3, as they don't contain any real data
+  basin_wb_aa <- basin_wb_aa %>% filter(!row_number() %in% c(1:3))
+
+  # Unite the last three rows into one string (as they were intended to be)
+  # the new column will be named description and describes what the softcal
+  # algorithm did in that step. (So its probably important).
+  # the united columns are separated by a space (trailing space exists now..)
+  if(length(no_name_columns) > 0) {
+    basin_wb_aa = tidyr::unite(data = basin_wb_aa,
+                               col = description,
+                               no_name_columns,
+                               sep = " ")
+  }
+
+  # figure out which columns should be a double and not a string
+  # (everything except for name and description columns)
+  dbl_cols = basin_wb_aa %>% colnames()
+  dbl_cols = dbl_cols[!dbl_cols %in% unique(c(c("name", "description"), dbl_cols[grepl("[A-Za-z]", basin_wb_aa)]))]
+  # and convert them to numeric
+  basin_wb_aa = basin_wb_aa %>% mutate_at(dbl_cols, as.numeric)
+
+  # return the formatted table as a tibble
+  return(basin_wb_aa %>% tibble())
+}

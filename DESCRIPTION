@@ -31,8 +31,7 @@ Imports:
   tibble,
   tidyr,
   tidyselect,
-  plotly,
-  utils
+  plotly
 Suggests:
   datasets,
 Encoding: UTF-8
