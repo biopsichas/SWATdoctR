@@ -48,7 +48,7 @@ print_triggered_mgt <- function(sim_verify, hru_id, years = 1900:2100) {
 #'   which operations where scheduled, that were either not triggered of
 #'   for which operation properties differ..
 #'
-#' @importFrom dplyr filter group_by group_split lead left_join mutate rename select slice_sample summarise %>% rename_with full_join ends_with
+#' @importFrom dplyr filter group_by group_split lead left_join mutate rename select slice_sample summarise %>% rename_with full_join ends_with inner_join reframe
 #' @importFrom purrr map
 #' @importFrom stringr str_sub str_remove
 #' @importFrom readr write_delim write_lines
@@ -58,28 +58,39 @@ print_triggered_mgt <- function(sim_verify, hru_id, years = 1900:2100) {
 #'
 report_mgt <- function(sim_verify, write_report = FALSE) {
   yr_start <- min(sim_verify$mgt_out$year)
+  yr_end   <- max(sim_verify$mgt_out$year)
   mgt_lbl <- unique(sim_verify$lum_mgt$mgt)
   mgt_lbl <- mgt_lbl[!is.na(mgt_lbl)]
 
-  schdl_mgt <- sim_verify$mgt_sch %>%
+  schdl_template <- sim_verify$mgt_sch %>%
     filter(schedule %in% mgt_lbl) %>%
-    filter(!is.na(op_typ)) %>%
     group_by(schedule) %>%
-    mutate(rm_skp = lead(op_typ, 1),
-           rm_skp = ifelse(op_typ == 'skip' &
-                             rm_skp  != 'skip' |
-                             is.na(rm_skp), TRUE, FALSE)) %>%
-    mutate(year = ifelse(rm_skp, 1, 0),
-           year = lag(year, default = 0)) %>%
-    filter(!rm_skp) %>%
-    select(-rm_skp) %>%
-    ungroup(.) %>%
-    mutate(mmdd = 100*mon + day,
-           mmdd = c(0, diff(mmdd)),
-           mmdd = ifelse(mmdd >= 0, 0, 1),
-           year = ifelse(year ==1 | mmdd == 1, 1, 0),
-           year = cumsum(year) + yr_start) %>%
-    select(-mmdd)
+    mutate(
+      # Create a 'relative year' index based on 'skip'
+      # We use lag() so the operations AFTER a skip belong to the next year
+      is_skip = ifelse(op_typ == "skip", 1, 0),
+      rel_year = cumsum(lag(is_skip, default = 0))
+    ) %>%
+    # Now we can safely remove the 'skip' rows
+    filter(op_typ != "skip") %>%
+    mutate(rot_length = max(rel_year) + 1) %>%
+    ungroup()
+
+  schdl_mgt <- schdl_template %>%
+    group_by(schedule) %>%
+    reframe(year = yr_start:yr_end)%>%
+    # Join back to the template using the Modulo Operator
+    inner_join(schdl_template, by = "schedule", relationship = "many-to-many") %>%
+    mutate(
+      # This determines which year of the template fits into the current sim year
+      # e.g., for a 2-yr rotation: 2015->0, 2016->1, 2017->0, 2018->1...
+      match_year = (year - yr_start) %% rot_length
+    ) %>%
+    # Keep only the operations that belong to that specific year in the cycle
+    filter(rel_year == match_year) %>%
+    # Cleanup and sort
+    select(schedule, op_typ, mon, day, hu_sch, starts_with("op_data"), year) %>%
+    arrange(schedule, year, mon, day)
 
   mgt_lbl <- unique(schdl_mgt$schedule)
 

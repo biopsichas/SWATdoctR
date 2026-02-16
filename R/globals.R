@@ -9,4 +9,5 @@ utils::globalVariables(c("%&&%", "%//%", ".", "crop", "day", "ecanopy", "eplant"
                          "description", "flo", "..density..", "wateryld", "cn", "sw_final", "esr", "mmdd",
                          "lu_mgt_ini", "has_suffix", "suffix_upd", "lu_mgt_upd", "schedule_upd",
                          "plnt_com_upd", "n_chr", "simulation", "start", "end", "mid", "stress", "n_op",
-                         "grw_group", "date_diff", "no_plntkill", "grw_group", "no_plntkill"))
+                         "grw_group", "date_diff", "no_plntkill", "grw_group", "no_plntkill",
+                         "hu_sch", "is_skip", "match_year", "rel_year", "rot_length"))
