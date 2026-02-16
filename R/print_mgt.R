@@ -25,7 +25,7 @@ print_triggered_mgt <- function(sim_verify, hru_id, years = 1900:2100) {
     filter(hru == hru_id) %>%
     filter(year %in% years) %>%
     rename(op_data1 = op_typ,
-           op_data3 = var1) %>%
+           op_data3 = op_var) %>%
     mutate(op_data3 = ifelse(operation != 'FERT', 0, op_data3)) %>%
     # mutate()
     # mutate(date = ymd(paste(year, mon, day, sep = '-'))) %>%
