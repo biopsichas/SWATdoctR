@@ -41,8 +41,8 @@ print_triggered_mgt <- function(sim_verify, hru_id, years = 1900:2100) {
 #' @param sim_verify Simulation output of the function \code{run_swat_verification()}.
 #'   To print the management at least the output option \code{outputs = 'mgt'} must
 #'   be set in  \code{run_swat_verification()}
-#' @param write_report (optional) Boolean TRUE for writing output to 'schedule_report.txt' file,
-#' FALSE - not preparing this file. Default \code{write_report = FALSE}.
+# @param write_report (optional) Boolean TRUE for writing output to 'schedule_report.txt' file,
+# FALSE - not preparing this file. Default \code{write_report = FALSE}.
 #'
 #' @return Returns a tibble that summarises all management schedules for
 #'   which operations where scheduled, that were either not triggered of
@@ -56,7 +56,7 @@ print_triggered_mgt <- function(sim_verify, hru_id, years = 1900:2100) {
 #'
 #' @export
 #'
-report_mgt <- function(sim_verify, write_report = FALSE) {
+report_mgt <- function(sim_verify) {
   yr_start <- min(sim_verify$mgt_out$year)
   yr_end   <- max(sim_verify$mgt_out$year)
   mgt_lbl <- unique(sim_verify$lum_mgt$mgt)
