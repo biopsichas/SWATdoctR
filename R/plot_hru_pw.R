@@ -94,7 +94,8 @@ plot_hru_pw_day <- function(sim_verify, hru_id, var, years = 1900:2100, add_crop
           strip.background = element_blank(),
           strip.placement = 'outside',
           strip.text = element_text(face = 'bold'),
-          axis.title.y = element_blank())
+          axis.title.y = element_blank())+
+    guides(color = guide_legend(nrow = 1))
 
   if (add_crop) {
     crop_dates <- sim_verify$mgt_out %>%
