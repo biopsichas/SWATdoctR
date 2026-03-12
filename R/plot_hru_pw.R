@@ -71,6 +71,10 @@ plot_hru_pw_day <- function(sim_verify, hru_id, var, years = 1900:2100, add_crop
 
   col_hex <- unname(palette.colors(palette = "Okabe-Ito")[2:(length(hru_id)+1)])
 
+  if(any(col_hex %>% is.na())){
+    warning("Too many HRUs passed for color pallete! Maximum is 8. Some HRUs will not be plotted.")
+  }
+
   plot_data <- sim_verify$hru_pw_day %>%
     filter(unit %in% hru_id) %>%
     filter(yr %in% years) %>%
