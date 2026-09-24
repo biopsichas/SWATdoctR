@@ -73,7 +73,7 @@ You can install the development version of **SWATdoctR** from
 # If the package 'remotes' is not installed run first:
 install.packages("remotes")
 
-# The installation of `SWATprepR`.
+# The installation of `SWATdoctR`.
 remotes::install_github("biopsichas/SWATdoctR")
 ```
 
