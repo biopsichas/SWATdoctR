@@ -4,7 +4,14 @@
 \alias{set_print_prt}
 \title{Read and set SWAT+ print.prt file}
 \usage{
-set_print_prt(project_path, run_path, outputs, years_skip)
+set_print_prt(
+  project_path,
+  run_path,
+  outputs,
+  years_skip,
+  start_date,
+  end_date
+)
 }
 \arguments{
 \item{project_path}{Path to the SWAT project folder (i.e. TxtInOut)}

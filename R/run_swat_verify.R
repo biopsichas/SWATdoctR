@@ -50,7 +50,7 @@ run_swat_verification <- function(project_path, outputs = c('wb', 'mgt', 'plt'),
 
   run_path <- build_model_run(project_path, '/.run_verify')
 
-  set_print_prt(project_path, run_path, outputs, years_skip)
+  set_print_prt(project_path, run_path, outputs, years_skip, start_date, end_date)
   set_time_sim(project_path, run_path, start_date, end_date)
   set_codes_bsn(run_path, nostress)
 
